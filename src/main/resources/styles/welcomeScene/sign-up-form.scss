@@ -1,0 +1,43 @@
+$XS:8;
+$S:16;
+$M:24;
+$L:32;
+$XL:64;
+
+
+
+
+.sign-up-form{
+  -fx-background-color: white;
+  -fx-font-family: Roboto;
+  -fx-font-size: $M;
+
+  .form-name{
+    -fx-padding: $S;
+    -fx-font-size: $L;
+    -fx-font-weight: bold;
+  }
+  .form-input-label{
+    -fx-font-size: $S;
+  }
+  .submit-button{
+    -fx-background-radius: 8em;
+    -fx-background-color: skyblue;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: $S;
+    -fx-padding: $S;
+    -fx-border-insets: $S;
+    -fx-background-insets: $S;
+    &:pressed{
+      -fx-background-color: darken(skyblue,$S);
+    }
+  }
+  .sign-in-label{
+    -fx-font-size: $S;
+    &:pressed{
+      -fx-text-fill: darken(black,$L);
+      -fx-font-weight: bold;
+    }
+  }
+}

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.StackPane?>
+
+
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.PasswordField?>
+
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.control.Button?>
+<?import com.sun.javafx.webkit.theme.RenderThemeImpl.FormButton?>
+<?import com.sun.javafx.webkit.theme.RenderThemeImpl.FormMenuList?>
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.app.chatapp.SignUPController"
+           stylesheets="@stylesheets/welcomeScene/welcomeScene.css"
+           styleClass="main-container">
+
+    <FlowPane alignment="CENTER"  styleClass="sign-up-form" minHeight="240" minWidth="200" maxHeight="560" maxWidth="400" >
+        <VBox spacing="8">
+            <HBox alignment="TOP_CENTER" prefHeight="80">
+                <Text styleClass="form-name">REGISTER</Text>
+            </HBox>
+            <VBox alignment="CENTER_LEFT">
+                <Label styleClass="form-input-label">Full name</Label>
+                <TextField  minWidth="120"  maxWidth="240"></TextField>
+            </VBox>
+            <VBox alignment="CENTER_LEFT" prefWidth="160" minWidth="120"  maxWidth="240" >
+                <Label styleClass="form-input-label">Email</Label>
+                <TextField></TextField>
+            </VBox>
+
+            <VBox alignment="CENTER_LEFT" prefWidth="160" minWidth="120"  maxWidth="240" >
+                <Label styleClass="form-input-label">Password</Label>
+                <PasswordField></PasswordField>
+            </VBox>
+
+            <VBox alignment="CENTER_LEFT" prefWidth="160" minWidth="120"  maxWidth="240" >
+                <Label styleClass="form-input-label">Repeat Password</Label>
+                <PasswordField></PasswordField>
+            </VBox>
+            <HBox alignment="CENTER">
+                <Button prefWidth="240" prefHeight="80" styleClass="submit-button" >SIGN UP</Button>
+            </HBox>
+            <HBox alignment="BOTTOM_CENTER">
+                <Label styleClass="sign-in-label" fx:id="switch-scene" alignment="BOTTOM_CENTER">Sign in</Label>
+            </HBox>
+        </VBox>
+    </FlowPane>
+
+
+
+</StackPane>

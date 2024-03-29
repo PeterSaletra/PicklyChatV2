@@ -1,0 +1,11 @@
+{
+  "name": "chatapp",
+  "version": "1.0.0",
+  "description": "University project. Encrypted chat application.",
+  "main": "HelloApplication.java",
+  "scripts": {
+    "compile-sass": "sass --watch src/main/resources/styles:target/classes/com/app/chatapp/stylesheets"
+  },
+  "author": "Jakub Lipka, Piotr Saletra, Piotr Ziętek",
+  "license": "ISC"
+}
