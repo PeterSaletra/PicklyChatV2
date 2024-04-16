@@ -12,4 +12,6 @@ module com.app.chatapp {
 
     opens com.app.chatapp to javafx.fxml;
     exports com.app.chatapp;
+    exports com.app.chatapp.auth;
+    opens com.app.chatapp.auth to javafx.fxml;
 }
