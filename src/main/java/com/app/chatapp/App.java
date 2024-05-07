@@ -9,8 +9,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import javax.websocket.*;
-
 import java.io.IOException;
 import java.util.Objects;
 

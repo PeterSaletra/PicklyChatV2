@@ -16,11 +16,11 @@
 <?import com.sun.javafx.webkit.theme.RenderThemeImpl.FormMenuList?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.app.chatapp.SignUPController"
-           stylesheets="@stylesheets/welcomeScene/welcomeScene.css"
+           fx:controller="com.app.chatapp.auth.WelcomeController"
+           stylesheets="@stylesheets/welcomeScene/sign-up-form.css"
            styleClass="main-container">
 
-    <FlowPane alignment="CENTER"  styleClass="sign-up-form" minHeight="240" minWidth="200" maxHeight="560" maxWidth="400" >
+    <FlowPane alignment="CENTER"  styleClass="sign-up-form" prefHeight="600" prefWidth="800" >
         <VBox spacing="8">
             <HBox alignment="TOP_CENTER" prefHeight="80">
                 <Text styleClass="form-name">REGISTER</Text>
@@ -46,8 +46,8 @@
             <HBox alignment="CENTER">
                 <Button prefWidth="240" prefHeight="80" styleClass="submit-button" >SIGN UP</Button>
             </HBox>
-            <HBox alignment="BOTTOM_CENTER">
-                <Label styleClass="sign-in-label" fx:id="switch-scene" alignment="BOTTOM_CENTER">Sign in</Label>
+            <HBox alignment="BOTTOM_CENTER" onMouseClicked="#switchScene" fx:id="switchToSignIn">
+                <Label styleClass="sign-in-label" alignment="BOTTOM_CENTER">Sign in</Label>
             </HBox>
         </VBox>
     </FlowPane>
