@@ -5,7 +5,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ProgressIndicator;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+
+import javax.websocket.*;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -19,8 +23,8 @@ public class App extends Application {
         stage.setTitle("ChatApp");
         stage.setScene(primaryStage);
         stage.setResizable(false);
-        stage.setX(-1000);
-        stage.setY(1000);
+        stage.setX(Screen.getPrimary().getBounds().getWidth()/4);
+        stage.setY(Screen.getPrimary().getBounds().getHeight()/8);
         stage.show();
     }
     public void changeScene(String fxmlFile) throws IOException {
