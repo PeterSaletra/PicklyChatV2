@@ -1,26 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.scene.layout.StackPane?>
-
-
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.PasswordField?>
-
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.control.Button?>
-<?import com.sun.javafx.webkit.theme.RenderThemeImpl.FormButton?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.image.Image?>
+
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.app.chatapp.auth.WelcomeController"
+           fx:controller="com.app.chatapp.SignINController"
            stylesheets="@stylesheets/welcomeScene/sign-in-form.css"
            styleClass="main-container">
-
 
     <FlowPane alignment="CENTER"  styleClass="sign-in-form" prefHeight="600" prefWidth="800" >
             <VBox spacing="8">
@@ -30,20 +24,20 @@
                 </HBox>
                 <VBox alignment="CENTER_LEFT">
                     <Label styleClass="form-input-label">Username</Label>
-                    <TextField  minWidth="120"  maxWidth="240"></TextField>
+                    <TextField  minWidth="120"  maxWidth="240" fx:id="loginField"></TextField>
                 </VBox>
                 <VBox alignment="CENTER_LEFT" prefWidth="160" minWidth="120"  maxWidth="240" >
                     <Label styleClass="form-input-label">Password</Label>
-                    <PasswordField></PasswordField>
+                    <PasswordField fx:id="passwordField"></PasswordField>
                 </VBox>
                 <HBox alignment="CENTER">
-                    <Button prefWidth="240" prefHeight="80" styleClass="submit-button" onMouseClicked="#switchScene" fx:id="switchToChat">SIGN IN</Button>
+                    <Button prefWidth="240" prefHeight="80" styleClass="submit-button" onMouseClicked="#loginButton" fx:id="signInButton">SIGN IN</Button>
                 </HBox>
-                <HBox alignment="BOTTOM_CENTER" onMouseClicked="#switchScene" fx:id="switchToSignUp">
+                <HBox alignment="BOTTOM_CENTER" onMouseClicked="#switchToSignUp" fx:id="switchToSignUp">
                     <Label styleClass="sign-up-label" alignment="BOTTOM_CENTER" >Sign up</Label>
                 </HBox>
             </VBox>
-        </FlowPane>
+    </FlowPane>
 
 
 

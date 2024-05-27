@@ -17,6 +17,7 @@ public class ChatServer implements Runnable{
     private final DataBase dataBase;
 
     public ChatServer() throws Exception {
+        this.activeUserHandlers = new ArrayList<>();
         this.activeUserThreads = new ArrayList<>();
         this.activeUsersName = new ArrayList<>();
         this.done = false;
@@ -25,6 +26,7 @@ public class ChatServer implements Runnable{
     }
 
     public ChatServer(int port) throws Exception {
+        this.activeUserHandlers = new ArrayList<>();
         this.activeUserThreads = new ArrayList<>();
         this.activeUsersName = new ArrayList<>();
         this.done = false;
@@ -97,6 +99,7 @@ public class ChatServer implements Runnable{
                         default:
                             sendMessage("Nieznany bład");
                     }
+                    System.out.println(logged);
                 }
             }catch (Exception e){
                 e.printStackTrace();
@@ -129,7 +132,7 @@ public class ChatServer implements Runnable{
         private boolean login(String password){
             if(dataBase.doesUsernameExist(nickname)) {
                 if(dataBase.getUserPassword(nickname).equals(password)){
-                    sendMessage("Udało się zalogować użytkownika!");
+                    sendMessage("OK");
                     return true;
                 } else{
                     sendMessage("Nieprawidłowe hasło!");
@@ -137,7 +140,6 @@ public class ChatServer implements Runnable{
             }else{
                 sendMessage("Użytkownik nie istnieje!");
             }
-            sendMessage("Pomyślnie zalogowano");
             return false;
         }
 

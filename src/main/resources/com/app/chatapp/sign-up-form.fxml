@@ -16,7 +16,7 @@
 <?import com.sun.javafx.webkit.theme.RenderThemeImpl.FormMenuList?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
-           fx:controller="com.app.chatapp.auth.WelcomeController"
+           fx:controller="com.app.chatapp.SignUPController"
            stylesheets="@stylesheets/welcomeScene/sign-up-form.css"
            styleClass="main-container">
 
@@ -26,27 +26,27 @@
                 <Text styleClass="form-name">REGISTER</Text>
             </HBox>
             <VBox alignment="CENTER_LEFT">
-                <Label styleClass="form-input-label">Full name</Label>
-                <TextField  minWidth="120"  maxWidth="240"></TextField>
+                <Label styleClass="form-input-label">Username</Label>
+                <TextField  minWidth="120"  maxWidth="240" fx:id="usernameField"></TextField>
             </VBox>
             <VBox alignment="CENTER_LEFT" prefWidth="160" minWidth="120"  maxWidth="240" >
                 <Label styleClass="form-input-label">Email</Label>
-                <TextField></TextField>
+                <TextField fx:id="emailField"></TextField>
             </VBox>
 
             <VBox alignment="CENTER_LEFT" prefWidth="160" minWidth="120"  maxWidth="240" >
                 <Label styleClass="form-input-label">Password</Label>
-                <PasswordField></PasswordField>
+                <PasswordField fx:id="passwordField"></PasswordField>
             </VBox>
 
             <VBox alignment="CENTER_LEFT" prefWidth="160" minWidth="120"  maxWidth="240" >
                 <Label styleClass="form-input-label">Repeat Password</Label>
-                <PasswordField></PasswordField>
+                <PasswordField fx:id="confirmPasswordField"></PasswordField>
             </VBox>
             <HBox alignment="CENTER">
-                <Button prefWidth="240" prefHeight="80" styleClass="submit-button" >SIGN UP</Button>
+                <Button prefWidth="240" prefHeight="80" styleClass="submit-button" fx:id="signUpButton" onMouseClicked="#signupButton">SIGN UP</Button>
             </HBox>
-            <HBox alignment="BOTTOM_CENTER" onMouseClicked="#switchScene" fx:id="switchToSignIn">
+            <HBox alignment="BOTTOM_CENTER" onMouseClicked="#switchToSignIn" fx:id="switchToSignIn">
                 <Label styleClass="sign-in-label" alignment="BOTTOM_CENTER">Sign in</Label>
             </HBox>
         </VBox>
