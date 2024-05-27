@@ -62,6 +62,7 @@ public class ChatServer implements Runnable{
         }catch (IOException e){
             throw  new RuntimeException(e);
         }
+
     }
 
     class ConnetionHandler implements Callable<Integer>{
@@ -102,6 +103,17 @@ public class ChatServer implements Runnable{
         private void sendMessage(String message){out.println(message);}
 
         private boolean login(String password){
+            if(dataBase.doesUsernameExist(nickname)) {
+                if(dataBase.getUserPassword(nickname).equals(password)){
+                    sendMessage("Udało się zalogować użytkownika!");
+                    return true;
+                } else{
+                    sendMessage("Nieprawidłowe hasło!");
+                }
+            }else{
+                sendMessage("Użytkownik nie istnieje!");
+            }
+            sendMessage("Pomyślnie zalogowano");
             return false;
         }
 
@@ -127,6 +139,15 @@ public class ChatServer implements Runnable{
             }
             sendMessage("Użytkownik o nicku: " + nickname + " już istnieje");
             return false;
+        }
+    }
+    public static void main(String[] args) {
+        try {
+            ChatServer server = new ChatServer(9999);
+            Thread serverThread = new Thread(server);
+            serverThread.start();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

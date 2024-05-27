@@ -9,7 +9,7 @@ module com.app.chatapp {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
-    requires javax.websocket.api;
+   //requires javax.websocket.api;
     requires java.sql;
 
     opens com.app.chatapp to javafx.fxml;
