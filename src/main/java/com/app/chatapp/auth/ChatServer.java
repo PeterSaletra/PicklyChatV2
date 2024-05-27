@@ -146,6 +146,7 @@ public class ChatServer implements Runnable{
             ChatServer server = new ChatServer(9999);
             Thread serverThread = new Thread(server);
             serverThread.start();
+            //test
         } catch (Exception e) {
             e.printStackTrace();
         }
