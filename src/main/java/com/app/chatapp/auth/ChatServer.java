@@ -17,19 +17,22 @@ public class ChatServer implements Runnable{
     private ExecutorService pool;
     private boolean done;
     private int port;
+    private DataBase dataBase;
 
-    public ChatServer() {
+    public ChatServer() throws Exception {
         this.activeUserThreads = new ArrayList<>();
         this.activeUsersName = new ArrayList<>();
         this.done = false;
         this.port = 9999;
+        this.dataBase = new DataBase();
     }
 
-    public ChatServer(int port){
+    public ChatServer(int port) throws Exception {
         this.activeUserThreads = new ArrayList<>();
         this.activeUsersName = new ArrayList<>();
         this.done = false;
         this.port = port;
+        this.dataBase = new DataBase();
     }
 
     @Override
@@ -103,6 +106,26 @@ public class ChatServer implements Runnable{
         }
 
         private boolean register(String password, String path){
+            if(!dataBase.doesUsernameExist(nickname)){
+                if(path.equals("")){
+                    if(dataBase.insertNewUser(nickname, password)){
+                        sendMessage("Udało sie utworzyć użytkownika");
+                        return true;
+                    }else{
+                        sendMessage("Bład podczas tworzenia użytkownika");
+                        return false;
+                    }
+                }else{
+                    if(dataBase.insertNewUser(nickname, password)){
+                        sendMessage("Udało sie utworzyć użytkownika");
+                        return true;
+                    }else{
+                        sendMessage("Bład podczas tworzenia użytkownika");
+                        return false;
+                    }
+                }
+            }
+            sendMessage("Użytkownik o nicku: " + nickname + " już istnieje");
             return false;
         }
     }
