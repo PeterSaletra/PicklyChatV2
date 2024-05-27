@@ -67,7 +67,6 @@ public class ChatServer implements Runnable{
         private PrintWriter out;
         private String nickname;
         private boolean logged;
-        private boolean registered;
 
         public ConnetionHandler(Socket client){
             this.client = client;
@@ -80,6 +79,16 @@ public class ChatServer implements Runnable{
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
                 String loginOrRegister = in.readLine();
+                String userData = in.readLine();
+                nickname = userData.split(" ")[0];
+                String password = userData.split(" ")[1];
+                if(loginOrRegister.equals("LOGN")){
+                    logged = login(password);
+                }else if(loginOrRegister.equals("REG")){
+                    String path = userData.split(" ")[2];
+                     logged = register(password, path);
+                }
+
             }catch (Exception e){
                 e.printStackTrace();
             }
@@ -89,11 +98,11 @@ public class ChatServer implements Runnable{
 
         private void sendMessage(String message){out.println(message);}
 
-        private boolean login(){
+        private boolean login(String password){
             return false;
         }
 
-        private boolean register(){
+        private boolean register(String password, String path){
             return false;
         }
     }
