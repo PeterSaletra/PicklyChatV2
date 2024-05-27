@@ -1,9 +1,6 @@
 package com.app.chatapp.auth;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -16,8 +13,8 @@ public class ChatServer implements Runnable{
     private ServerSocket serverSocket;
     private ExecutorService pool;
     private boolean done;
-    private int port;
-    private DataBase dataBase;
+    private final int port;
+    private final DataBase dataBase;
 
     public ChatServer() throws Exception {
         this.activeUserThreads = new ArrayList<>();
@@ -58,7 +55,6 @@ public class ChatServer implements Runnable{
                     e.printStackTrace();
                 }
             }
-
         }catch (IOException e){
             throw  new RuntimeException(e);
         }
@@ -66,7 +62,7 @@ public class ChatServer implements Runnable{
     }
 
     class ConnetionHandler implements Callable<Integer>{
-        private Socket client;
+        private final Socket client;
         private BufferedReader in;
         private PrintWriter out;
         private String nickname;
@@ -77,30 +73,58 @@ public class ChatServer implements Runnable{
         }
 
         @Override
-        public Integer call() throws Exception {
+        public Integer call(){
             try{
-                out = new PrintWriter(client.getOutputStream(), true);;
+                out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-                String loginOrRegister = in.readLine();
-                String userData = in.readLine();
-                nickname = userData.split(" ")[0];
-                String password = userData.split(" ")[1];
-                if(loginOrRegister.equals("LOGN")){
-                    logged = login(password);
-                }else if(loginOrRegister.equals("REG")){
-                    String path = userData.split(" ")[2];
-                     logged = register(password, path);
-                }
+                while(!logged) {
+                    String loginOrRegister = in.readLine();
+                    String userData = in.readLine();
+                    nickname = userData.split(" ")[0];
+                    String password = userData.split(" ")[1];
 
+
+                    switch (loginOrRegister){
+                        case "LOGIN":
+                            logged = login(password);
+                            break;
+                        case "REG/F":
+                            String path = reciveUserPicture();
+                            logged = register(password, path);
+                        case "REG/N":
+                            logged = register(password, "");
+                        default:
+                            sendMessage("Nieznany bład");
+                    }
+                }
             }catch (Exception e){
                 e.printStackTrace();
             }
-
             return null;
         }
 
         private void sendMessage(String message){out.println(message);}
+
+        private String reciveUserPicture(){
+            String path = "userPictuers/" + nickname + ".jpg";
+            try(ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            FileOutputStream outputStream = new FileOutputStream(path)){
+                int nRead;
+                byte[] data = new byte[1024];
+                while((nRead = client.getInputStream().read(data, 0, data.length)) != -1){
+                    buffer.write(data, 0, nRead);
+                }
+                buffer.flush();
+                byte[] imageData = buffer.toByteArray();
+
+                outputStream.write(imageData);
+                return path;
+            }catch (IOException e){
+                System.err.println("Problem w pobieraniu zdjęcia: " + e.getMessage());
+                return null;
+            }
+        }
 
         private boolean login(String password){
             if(dataBase.doesUsernameExist(nickname)) {
@@ -118,8 +142,8 @@ public class ChatServer implements Runnable{
         }
 
         private boolean register(String password, String path){
-            if(!dataBase.doesUsernameExist(nickname)){
-                if(path.equals("")){
+            if(dataBase.doesUsernameExist(nickname)){
+                if(path.isEmpty()){
                     if(dataBase.insertNewUser(nickname, password)){
                         sendMessage("Udało sie utworzyć użytkownika");
                         return true;
@@ -148,7 +172,7 @@ public class ChatServer implements Runnable{
             serverThread.start();
             //test
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Bład w trakcie uruchamiania servera: " + e.getMessage());
         }
     }
 }
