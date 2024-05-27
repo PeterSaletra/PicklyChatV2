@@ -10,6 +10,7 @@ module com.app.chatapp {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires javax.websocket.api;
+    requires java.sql;
 
     opens com.app.chatapp to javafx.fxml;
     exports com.app.chatapp;
