@@ -27,7 +27,6 @@ public class App extends Application {
     }
     public void changeScene(String fxmlFile) throws IOException {
         Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(fxmlFile)));
-
     }
 
 

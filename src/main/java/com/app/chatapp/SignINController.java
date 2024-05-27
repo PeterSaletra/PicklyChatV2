@@ -19,14 +19,11 @@ public class SignINController {
     @FXML
     private HBox switchToSignUp;
 
-
-
     private void switchScene(ActionEvent event) throws IOException {
         Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("sign-up-form.fxml")));
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root, 800, 600));
     }
-
     public void handleSignUpLabel(javafx.scene.input.MouseEvent mouseEvent) throws IOException {
 
         Stage stage = (Stage) switchToSignUp.getScene().getWindow();

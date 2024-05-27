@@ -13,6 +13,8 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.control.Button?>
 <?import com.sun.javafx.webkit.theme.RenderThemeImpl.FormButton?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <StackPane xmlns="http://javafx.com/javafx"
            xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.app.chatapp.auth.WelcomeController"
@@ -24,6 +26,7 @@
             <VBox spacing="8">
                 <HBox alignment="TOP_CENTER" prefHeight="120">
                     <Text styleClass="form-name">LOGIN</Text>
+
                 </HBox>
                 <VBox alignment="CENTER_LEFT">
                     <Label styleClass="form-input-label">Username</Label>
@@ -34,7 +37,7 @@
                     <PasswordField></PasswordField>
                 </VBox>
                 <HBox alignment="CENTER">
-                    <Button prefWidth="240" prefHeight="80" styleClass="submit-button" >SIGN IN</Button>
+                    <Button prefWidth="240" prefHeight="80" styleClass="submit-button" onMouseClicked="#switchScene" fx:id="switchToChat">SIGN IN</Button>
                 </HBox>
                 <HBox alignment="BOTTOM_CENTER" onMouseClicked="#switchScene" fx:id="switchToSignUp">
                     <Label styleClass="sign-up-label" alignment="BOTTOM_CENTER" >Sign up</Label>

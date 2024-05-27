@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
+<StackPane styleClass="main-container" stylesheets="@stylesheets\chatScene\chatScene.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.chatapp.ChatSceneController">
+
+    <BorderPane prefHeight="600" prefWidth="800" styleClass="chatScene">
+        <top>
+            <HBox prefHeight="80" styleClass="topBar">
+                <Label alignment="CENTER" prefHeight="80" prefWidth="729.0">PICKLY</Label>
+                <Region HBox.hgrow="ALWAYS" />
+                <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true" styleClass="image" onMouseClicked="#enterSettings">
+                    <HBox.margin>
+                        <Insets right="5.0" top="15.0" />
+                    </HBox.margin>
+                    <Image url="@../../../pictures/settings_button.png" />
+                </ImageView>
+                <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true" styleClass="image" onMouseClicked="#closeApplication">
+                    <HBox.margin>
+                        <Insets right="5.0" top="15.0" />
+                    </HBox.margin>
+                    <Image url="@../../../pictures/close_app.png" />
+                </ImageView>
+            </HBox>
+        </top>
+      <center>
+         <HBox styleClass="chatWindow">
+               <TextArea prefHeight="440.0" prefWidth="575" />
+               <ScrollBar orientation="VERTICAL" prefWidth="25" />
+         </HBox>
+    </center>
+      <right>
+          <VBox prefHeight="440.0" prefWidth="200.0" styleClass="rightPanel" BorderPane.alignment="CENTER_RIGHT">
+          <Label alignment="TOP_CENTER" maxWidth="200">Active Users</Label>
+          </VBox>
+      </right>
+        <bottom>
+            <HBox>
+                <TextField minHeight="80" minWidth="500" />
+                <Button fx:id="sendMessageButton" minHeight="80" minWidth="100" styleClass="sendButton"> SEND </Button>
+                <Circle fx:id="userImageCircle" radius="40" styleClass="userImage">
+                    <HBox.margin>
+                        <Insets left="5.0" right="15.0" />
+                    </HBox.margin>
+                </Circle>
+                <ChoiceBox fx:id="choiceBox" prefHeight="51.0" prefWidth="103.0" value="ON">
+                    <HBox.margin>
+                        <Insets right="5.0" top="15.0" />
+                    </HBox.margin>
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <String fx:value="ON" />
+                            <String fx:value="OFF" />
+                            <String fx:value="BRB" />
+                        </FXCollections>
+                    </items>
+                </ChoiceBox>
+            </HBox>
+        </bottom>
+    </BorderPane>
+
+</StackPane>
