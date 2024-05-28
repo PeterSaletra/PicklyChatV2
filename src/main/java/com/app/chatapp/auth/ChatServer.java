@@ -63,6 +63,15 @@ public class ChatServer implements Runnable{
 
     }
 
+
+    private void sendBrodcast(String nickname, String message){
+        for(ConnetionHandler handler: activeUserHandlers){
+            if(!handler.nickname.equals(nickname)){
+                handler.sendMessage(message);
+             }
+        }
+    }
+
     class ConnetionHandler implements Callable<Integer>{
         private final Socket client;
         private BufferedReader in;
@@ -97,9 +106,19 @@ public class ChatServer implements Runnable{
                         case "REG/N":
                             logged = register(password, "");
                         default:
-                            sendMessage("Nieznany bład");
+                            sendMessage("Error: 404");
                     }
-                    System.out.println(logged);
+
+                    String message;
+                    while((message = in.readLine()) != null){
+                        if(message.equals("QUIT")){
+                            shutdown();
+                            break;
+                        }else {
+                            sendBrodcast(nickname + ": " + message, nickname);
+                        };
+                    }
+
                 }
             }catch (Exception e){
                 e.printStackTrace();
@@ -108,6 +127,11 @@ public class ChatServer implements Runnable{
         }
 
         private void sendMessage(String message){out.println(message);}
+
+        private void sendUpdateActiveUsers(){
+            String activeClientUpdate = "ACTIVE: " + String.join(",", activeUsersName);
+            sendBrodcast(activeClientUpdate, nickname);
+        }
 
         private String reciveUserPicture(){
             String path = "userPictuers/" + nickname + ".jpg";
@@ -125,6 +149,7 @@ public class ChatServer implements Runnable{
                 return path;
             }catch (IOException e){
                 System.err.println("Problem w pobieraniu zdjęcia: " + e.getMessage());
+                sendMessage("Error: 500");
                 return null;
             }
         }
@@ -132,13 +157,14 @@ public class ChatServer implements Runnable{
         private boolean login(String password){
             if(dataBase.doesUsernameExist(nickname)) {
                 if(dataBase.getUserPassword(nickname).equals(password)){
-                    sendMessage("OK");
+                    sendMessage("OK: 200");
+                    activeUsersName.add(nickname);
                     return true;
                 } else{
-                    sendMessage("Nieprawidłowe hasło!");
+                    sendMessage("Error: 401");
                 }
             }else{
-                sendMessage("Użytkownik nie istnieje!");
+                sendMessage("Error: 404");
             }
             return false;
         }
@@ -147,26 +173,48 @@ public class ChatServer implements Runnable{
             if(dataBase.doesUsernameExist(nickname)){
                 if(path.isEmpty()){
                     if(dataBase.insertNewUser(nickname, password)){
-                        sendMessage("Udało sie utworzyć użytkownika");
+                        sendMessage("OK: 201");
+                        activeUsersName.add(nickname);
                         return true;
                     }else{
-                        sendMessage("Bład podczas tworzenia użytkownika");
+                        sendMessage("Error: 400");
                         return false;
                     }
                 }else{
                     if(dataBase.insertNewUser(nickname, password)){
-                        sendMessage("Udało sie utworzyć użytkownika");
+                        sendMessage("OK: 201");
+                        activeUsersName.add(nickname);
                         return true;
                     }else{
-                        sendMessage("Bład podczas tworzenia użytkownika");
+                        sendMessage("Error: 400");
                         return false;
                     }
                 }
             }
-            sendMessage("Użytkownik o nicku: " + nickname + " już istnieje");
+            sendMessage("Error: 404");
             return false;
         }
+
+        private void shutdown(){
+            try {
+                activeUsersName.remove(nickname);
+                sendBrodcast(nickname + " left chat", nickname);
+                sendUpdateActiveUsers();
+
+                activeUserHandlers.remove(this);
+
+                in.close();
+                out.close();
+                if (!client.isClosed()) {
+                    client.close();
+                }
+            } catch (IOException e) {
+                // ignore
+            }
+        }
     }
+
+
     public static void main(String[] args) {
         try {
             ChatServer server = new ChatServer(9999);
