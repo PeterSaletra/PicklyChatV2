@@ -80,18 +80,18 @@ public class SignUPController {
                 String data = username + " " + password;
                 if (profilePicture != null) {
                     App.sendToServer("REG/F");
+                    System.out.println(data);
                     App.sendToServer(data);
                     App.sendToServer(profilePicture);
                 } else {
                     App.sendToServer("REG/N");
-                    System.out.println("Dupa");
                     App.sendToServer(data);
                 }
                 String response = App.receiveFromServer();
                 System.out.println(response);
 
                 if (response.equals("OK: 201")) {
-                    App.changeScene(signUpButton, "chatScene.fxml");
+                    //App.changeScene(signUpButton, "chatScene.fxml");
                 } else if (response.equals("ERROR: 400")) {
                     //username exists handler
                 }

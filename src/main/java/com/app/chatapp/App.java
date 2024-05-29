@@ -12,11 +12,12 @@ import javafx.stage.Window;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.util.Objects;
 
 public class App extends Application {
 
-    private Socket socket = null;
+    private static Socket socket = null;
     private static BufferedReader in = null;
     private static BufferedWriter out = null;
 
@@ -41,6 +42,7 @@ public class App extends Application {
 
     public static void sendToServer(String data){
         try {
+            System.out.println(data);
             out.write(data);
             out.newLine();
             out.flush();
@@ -50,21 +52,25 @@ public class App extends Application {
     }
 
     public static void sendToServer(File data){
-        try {
-            out.write(String.valueOf(data)); // to mialo byc wysylanie pliku ale wjebalem byle co zeby nie bylo bledu essa
-            out.newLine(); //chuj wie co to za gowno LOL
-            out.flush();
+        try(Socket socket1 = new Socket("127.0.0.1", 9999);
+            OutputStream outputStream = socket1.getOutputStream()) {
+            byte[] imageData = Files.readAllBytes(data.toPath());
+            outputStream.write(imageData);
+            outputStream.flush();
         } catch (IOException e) {
-            System.out.println("Lost connection to a server, couldn't send data.");
+            System.out.println("Lost connection to a server, couldn't send File.");
         }
     }
 
 
     public static String receiveFromServer(){
         try {
-            return in.readLine();
+            String message = "";
+            while((message = in.readLine()) != null){
+                return message;
+            }
         } catch (IOException e) {
-            System.out.println("Lost connection to a server, couldn't send data.");
+            System.out.println("Lost connection to a server, couldn't receive data.");
         }
         return null;
     }

@@ -91,9 +91,13 @@ public class ChatServer implements Runnable{
 
                 while(!logged) {
                     String loginOrRegister = in.readLine();
-                    String userData = in.readLine();
-                    nickname = userData.split(" ")[0];
-                    String password = userData.split(" ")[1];
+                    String userData = in.readLine().strip();
+                    String []userDataArray = userData.split(" ");
+                    if(userDataArray.length < 2){
+                        sendMessage("Error: 400");
+                    }
+                    nickname = userDataArray[0];
+                    String password = userDataArray[userDataArray.length-1];
 
 
                     switch (loginOrRegister){
@@ -103,17 +107,20 @@ public class ChatServer implements Runnable{
                         case "REG/F":
                             String path = reciveUserPicture();
                             logged = register(password, path);
+                            break;
                         case "REG/N":
                             logged = register(password, "");
+                            break;
                         default:
                             sendMessage("Error: 404 Unknown Command");
+                            break;
                     }
 
                     String message;
                     while((message = in.readLine()) != null){
                         if(message.equals("QUIT")){
                             shutdown();
-                            break;
+                            return 0;
                         }else {
                             sendBrodcast(nickname + ": " + message, nickname);
                         };
@@ -122,6 +129,7 @@ public class ChatServer implements Runnable{
                 }
             }catch (Exception e){
                 e.printStackTrace();
+
             }
             return null;
         }
@@ -134,18 +142,19 @@ public class ChatServer implements Runnable{
         }
 
         private String reciveUserPicture(){
-            String path = "userPictuers/" + nickname + ".jpg";
+            String path = nickname + ".jpg";
             try(ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             FileOutputStream outputStream = new FileOutputStream(path)){
                 int nRead;
                 byte[] data = new byte[1024];
-                while((nRead = client.getInputStream().read(data, 0, data.length)) != -1){
+                while((nRead = client.getInputStream().read(data)) != -1){
                     buffer.write(data, 0, nRead);
                 }
                 buffer.flush();
                 byte[] imageData = buffer.toByteArray();
 
                 outputStream.write(imageData);
+                System.out.println("Dodano zdjęcie użytkownika: " + nickname);
                 return path;
             }catch (IOException e){
                 System.err.println("Problem w pobieraniu zdjęcia: " + e.getMessage());
@@ -208,6 +217,7 @@ public class ChatServer implements Runnable{
                 if (!client.isClosed()) {
                     client.close();
                 }
+
             } catch (IOException e) {
                 // ignore
             }
