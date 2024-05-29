@@ -2,6 +2,7 @@ package com.app.chatapp;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.ProgressIndicator;
@@ -48,6 +49,17 @@ public class App extends Application {
         }
     }
 
+    public static void sendToServer(File data){
+        try {
+            out.write(String.valueOf(data)); // to mialo byc wysylanie pliku ale wjebalem byle co zeby nie bylo bledu essa
+            out.newLine(); //chuj wie co to za gowno LOL
+            out.flush();
+        } catch (IOException e) {
+            System.out.println("Lost connection to a server, couldn't send data.");
+        }
+    }
+
+
     public static String receiveFromServer(){
         try {
             return in.readLine();
@@ -57,8 +69,12 @@ public class App extends Application {
         return null;
     }
 
-    public void changeScene(String fxmlFile) throws IOException {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource(fxmlFile)));
+    public static void changeScene(Node currentNode, String resourceName) throws IOException {
+        Stage stage = (Stage) currentNode.getScene().getWindow();
+        Parent root = FXMLLoader.load(Objects.requireNonNull(App.class.getResource(resourceName)));
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
     }
 
     public static void main(String[] args) {

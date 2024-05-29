@@ -106,7 +106,7 @@ public class ChatServer implements Runnable{
                         case "REG/N":
                             logged = register(password, "");
                         default:
-                            sendMessage("Error: 404");
+                            sendMessage("Error: 404 Unknown Command");
                     }
 
                     String message;
@@ -170,7 +170,7 @@ public class ChatServer implements Runnable{
         }
 
         private boolean register(String password, String path){
-            if(dataBase.doesUsernameExist(nickname)){
+            if(!dataBase.doesUsernameExist(nickname)){
                 if(path.isEmpty()){
                     if(dataBase.insertNewUser(nickname, password)){
                         sendMessage("OK: 201");
@@ -181,7 +181,7 @@ public class ChatServer implements Runnable{
                         return false;
                     }
                 }else{
-                    if(dataBase.insertNewUser(nickname, password)){
+                    if(dataBase.insertNewUser(nickname, password, path)){
                         sendMessage("OK: 201");
                         activeUsersName.add(nickname);
                         return true;

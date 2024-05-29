@@ -34,19 +34,19 @@ public class DataBase {
     }
 
     public boolean insertNewUser(String name, String password){
-        try(PreparedStatement stm = conn.prepareStatement("insert into user (userName, password, avatar_path) VALUES (?, ?," +  getClass().getResource("pictures/avatar.jpg") +" )")){
+        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?," +  getClass().getResource("pictures/avatar.jpg") +" )")){
             stm.setString(1, name);
             stm.setString(2, password);
             stm.executeUpdate();
             return true;
         }catch (SQLException e){
-            System.err.println();
+            System.err.println(e.toString());
             return false;
         }
     }
 
     public boolean insertNewUser(String name, String password, String filePath){
-        try(PreparedStatement stm = conn.prepareStatement("insert into user (userName, password, avatar_path) VALUES (?, ?, ?)")){
+        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?, ?)")){
             stm.setString(1, name);
             stm.setString(2, password);
             stm.setString(3, filePath);
