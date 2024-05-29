@@ -14,11 +14,14 @@ public class DataBase {
     private String password;
     private final String driver = "com.mysql.cj.jdbc.Driver";
     private Connection conn;
+    private final Logger logger;
 
     public DataBase() throws Exception {
         loadENV();
         Class.forName(driver);
         conn = DriverManager.getConnection(url, login, password);
+        this.logger = new Logger("Database");
+        logger.echo("Successfully connected");
     }
 
     private void loadENV(){
@@ -38,9 +41,10 @@ public class DataBase {
             stm.setString(1, name);
             stm.setString(2, password);
             stm.executeUpdate();
+            logger.echo("User " + name + " successfully added to database");
             return true;
         }catch (SQLException e){
-            System.err.println(e.toString());
+            logger.err("Error occurred while adding user: " + name + " to database", e.getMessage());
             return false;
         }
     }
@@ -51,9 +55,10 @@ public class DataBase {
             stm.setString(2, password);
             stm.setString(3, filePath);
             stm.executeUpdate();
+            logger.echo("User " + name + " successfully added to database");
             return true;
         }catch (SQLException e){
-            System.err.println();
+            logger.err("Error occurred while adding user: " + name + " to database", e.getMessage());
             return false;
         }
     }
@@ -62,9 +67,10 @@ public class DataBase {
         try(PreparedStatement stm = conn.prepareStatement("UPDATE user set username=? where username=?");){
             stm.setString(1, newName);
             stm.setString(2, oldName);
+            logger.echo("User " + newName + " successfully updated in database");
             return true;
         }catch (SQLException e){
-            System.err.println("Nie udało sie zaktualizować wyniku użytkownika: " + e.toString());
+            logger.err("Error occurred while updating user: " + oldName + " to database", e.getMessage());
             return false;
         }
     }
@@ -74,10 +80,11 @@ public class DataBase {
             stm.setString(1, newName);
             ResultSet res = stm.executeQuery();
             if(res.next()){
+                logger.echo("User: " + newName + " exists in database");
                 return true;
             }
         } catch (SQLException e){
-            System.err.print("Nie udalo się sprawdzić czy użytkownik istnieje: " + e.toString());
+            logger.err("Error occurred while checking user: " + newName + " in database", e.getMessage());
         }
         return false;
     }
@@ -90,7 +97,7 @@ public class DataBase {
                 return res.getString(1);
             }
         } catch (SQLException e){
-            System.err.print("Nie udało się pobrac hasla: " + e.toString());
+            logger.err("Error occurred while checking user password: " + username + " in database", e.getMessage());
         }
         return null;
     }
@@ -99,7 +106,7 @@ public class DataBase {
         try{
             conn.close();
         }catch (SQLException e){
-            e.printStackTrace();
+            logger.err("Error occurred while closing database connection", e.getMessage());
         }
     }
 }
