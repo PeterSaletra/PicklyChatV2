@@ -52,11 +52,18 @@ public class App extends Application {
     }
 
     public static void sendToServer(File data){
-        try(Socket socket1 = new Socket("127.0.0.1", 9999);
-            OutputStream outputStream = socket1.getOutputStream()) {
-            byte[] imageData = Files.readAllBytes(data.toPath());
-            outputStream.write(imageData);
-            outputStream.flush();
+        try{
+            sendToServer(String.valueOf(data.length()));
+
+            FileInputStream fis = new FileInputStream(data);
+
+            byte[] imageData = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = fis.read(imageData)) != -1){
+                socket.getOutputStream().write(imageData, 0, bytesRead);
+            }
+            fis.close();
+
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't send File.");
         }
