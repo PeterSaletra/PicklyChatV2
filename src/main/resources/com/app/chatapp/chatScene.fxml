@@ -19,13 +19,13 @@
                     <HBox.margin>
                         <Insets right="5.0" top="15.0" />
                     </HBox.margin>
-                    <Image url="@../../../pictures/settings_button.png" />
+                    <Image url="@pictures/settings_button.png" />
                 </ImageView>
                 <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true" styleClass="image" onMouseClicked="#closeApplication">
                     <HBox.margin>
                         <Insets right="5.0" top="15.0" />
                     </HBox.margin>
-                    <Image url="@../../../pictures/close_app.png" />
+                    <Image url="@pictures/close_app.png" />
                 </ImageView>
             </HBox>
         </top>

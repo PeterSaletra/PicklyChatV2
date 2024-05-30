@@ -35,11 +35,7 @@ public class SignINController {
 
     @FXML
     public void switchToSignUp(MouseEvent event) throws IOException {
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        Parent root = FXMLLoader.load(Objects.requireNonNull(App.class.getResource("sign-up-form.fxml")));
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        ControllerUtils.changeScene(((Node)event.getSource()), "sign-up-form.fxml");
     }
 
     @FXML
@@ -55,26 +51,9 @@ public class SignINController {
             System.out.println(response);
 
             if (response.equals("OK: 200")) {
-                App.changeScene(signInButton, "chatScene.fxml");
+                ControllerUtils.changeScene(signInButton, "chatScene.fxml");
             } else {
-                Stage dialogStage = new Stage();
-                Window mainWindow = ((Node) mouseEvent.getSource()).getScene().getWindow();
-
-                dialogStage.initModality(Modality.APPLICATION_MODAL);
-                dialogStage.setWidth(300);
-                dialogStage.setHeight(100);
-
-                Button okButton = new Button("Ok");
-                okButton.setOnAction(event -> dialogStage.close());
-
-                VBox vbox = new VBox(new Text("WRONG PASSWORD"), okButton);
-                vbox.setAlignment(Pos.BOTTOM_CENTER);
-                vbox.setPadding(new Insets(15));
-
-                dialogStage.setScene(new Scene(vbox));
-                dialogStage.setX(mainWindow.getX() + (mainWindow.getWidth() - dialogStage.getWidth()) / 2);
-                dialogStage.setY(mainWindow.getY() + (mainWindow.getHeight() - dialogStage.getHeight()) / 2);
-                dialogStage.show();
+                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "WRONG PASSWORD", "OK");
             }
         }
     }

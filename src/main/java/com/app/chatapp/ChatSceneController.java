@@ -35,7 +35,7 @@ public class ChatSceneController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         FileInputStream inputstream = null;
         try {
-            inputstream = new FileInputStream("./src/main/resources/pictures/avatar.jpg");
+            inputstream = new FileInputStream("./src/main/resources/com/app/chatapp/pictures/avatar.jpg");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }

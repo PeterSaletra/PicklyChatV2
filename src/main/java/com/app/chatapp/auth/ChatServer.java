@@ -121,16 +121,17 @@ public class ChatServer implements Runnable{
                             break;
                     }
 
-/*                    String message;
-                    while((message = in.readLine()) != null){
-                        if(message.equals("QUIT")){
-                            shutdown();
-                            return 0;
-                        }else {
-                            sendBroadcast(nickname + ": " + message, nickname);
-                        };
-                    }*/
 
+
+                }
+                String message;
+                while((message = in.readLine()) != null){
+                    if(message.equals("QUIT")){
+                        shutdown();
+                        return 0;
+                    }else {
+                        sendBroadcast(nickname + ": " + message, nickname);
+                    };
                 }
             }catch (Exception e){
                 e.printStackTrace();

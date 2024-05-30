@@ -41,7 +41,7 @@
                 <PasswordField fx:id="confirmPasswordField"></PasswordField>
             </VBox>
             <HBox alignment="CENTER">
-                <Button prefWidth="240" prefHeight="80" styleClass="submit-button" fx:id="selectFileButton" onMouseClicked="#fileSelection">SELECT PROFILE PICTURE</Button>
+                <Button prefWidth="240" prefHeight="80" styleClass="submit-button" fx:id="selectFileButton" onMouseClicked="#fileSelection">SELECT AVATAR</Button>
             </HBox>
             <HBox alignment="CENTER">
                 <Button prefWidth="240" prefHeight="80" styleClass="submit-button" fx:id="signUpButton" onMouseClicked="#signupButton">SIGN UP</Button>

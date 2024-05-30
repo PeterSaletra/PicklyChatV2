@@ -4,8 +4,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 public class DataBase {
@@ -37,7 +35,7 @@ public class DataBase {
     }
 
     public boolean insertNewUser(String name, String password){
-        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?," +  getClass().getResource("pictures/avatar.jpg") +" )")){
+        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?," +  getClass().getResource("com/app/chatapp/avatar.jpg") +" )")){
             stm.setString(1, name);
             stm.setString(2, password);
             stm.executeUpdate();

@@ -14,6 +14,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.util.Objects;
+import javafx.scene.image.Image;
 
 public class App extends Application {
 
@@ -27,9 +28,10 @@ public class App extends Application {
 
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("sign-in-form.fxml"));
         Scene primaryStage = new Scene(fxmlLoader.load(), 800, 600);
-        stage.setTitle("ChatApp");
+        stage.setTitle("Pickly Chat App");
         stage.setScene(primaryStage);
         stage.setResizable(false);
+        stage.getIcons().add(new Image(App.class.getResourceAsStream("pictures/pickly_logo.jpg")));
         stage.setX(Screen.getPrimary().getBounds().getWidth()/4);
         stage.setY(Screen.getPrimary().getBounds().getHeight()/8);
         stage.show();
@@ -83,14 +85,6 @@ public class App extends Application {
             System.out.println("Lost connection to a server, couldn't receive data.");
         }
         return null;
-    }
-
-    public static void changeScene(Node currentNode, String resourceName) throws IOException {
-        Stage stage = (Stage) currentNode.getScene().getWindow();
-        Parent root = FXMLLoader.load(Objects.requireNonNull(App.class.getResource(resourceName)));
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
     }
 
     public static void main(String[] args) {
