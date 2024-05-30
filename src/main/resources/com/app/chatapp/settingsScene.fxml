@@ -7,7 +7,15 @@
 
 
     <FlowPane alignment="CENTER" prefHeight="600" prefWidth="800" styleClass="costam">
-         <Button mnemonicParsing="false" text="goBack" onMouseClicked="#goBack" styleClass="goBack" />
+        <VBox>
+            <Label styleClass="form-input-label">New Username</Label>
+            <TextField  minWidth="120"  maxWidth="240" fx:id="usernameField"></TextField>
+        </VBox>
+
+        <HBox>
+        <Button mnemonicParsing="false" onMouseClicked="#goBack" styleClass="goBack"> Submit </Button>
+        <Button mnemonicParsing="false" onMouseClicked="#goBack" styleClass="goBack"> Cancel </Button>
+        </HBox>
     </FlowPane>
 
 

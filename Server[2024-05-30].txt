@@ -1,3 +1,4 @@
-[Server][2024-05-30][01:33:24.915] Server started
-[Server][2024-05-30][01:33:41.659] User: 2 connected to server
-[Server][2024-05-30][01:33:41.712] User: 2 successfully logged in
+[Server][2024-05-30][17:27:10.528] Server started
+[Server][2024-05-30][17:27:23.747] User: 333 connected to server
+[Server][2024-05-30][17:27:23.749] User: 333 image receive
+[Server][2024-05-30][17:27:23.772] User: 333 successfully registered

@@ -121,7 +121,7 @@ public class ChatServer implements Runnable{
                             break;
                     }
 
-                    String message;
+/*                    String message;
                     while((message = in.readLine()) != null){
                         if(message.equals("QUIT")){
                             shutdown();
@@ -129,7 +129,7 @@ public class ChatServer implements Runnable{
                         }else {
                             sendBroadcast(nickname + ": " + message, nickname);
                         };
-                    }
+                    }*/
 
                 }
             }catch (Exception e){
@@ -150,19 +150,23 @@ public class ChatServer implements Runnable{
             try {
                 String fileName = nickname + ".jpg";
                 int fileSize = Integer.parseInt(in.readLine());
+
                 File file = new File(fileName);
-                //file.getParentFile().mkdirs();
 
                 FileOutputStream fos = new FileOutputStream(file);
                 byte[] buffer = new byte[4096];
                 int bytesRead;
                 int totalBytesRead = 0;
 
+                sendMessage("BEGIN TRANSFER");
+
                 while (totalBytesRead < fileSize){
                     bytesRead = client.getInputStream().read(buffer, 0, Math.min(buffer.length, fileSize-totalBytesRead));
                     totalBytesRead += bytesRead;
                     fos.write(buffer, 0 , bytesRead);
+                    fos.flush();
                 }
+
                 fos.close();
                 logger.echo("User: " + nickname + " image receive");
                 return fileName;
