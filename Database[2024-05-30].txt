@@ -1,0 +1,2 @@
+[Database][2024-05-30][01:33:24.911] Successfully connected
+[Database][2024-05-30][01:33:41.710] User: 2 exists in database

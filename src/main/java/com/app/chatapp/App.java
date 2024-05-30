@@ -59,6 +59,9 @@ public class App extends Application {
 
             byte[] imageData = new byte[4096];
             int bytesRead;
+
+            if(!in.readLine().equals("BEGIN TRANSFER")) return;
+
             while ((bytesRead = fis.read(imageData)) != -1){
                 socket.getOutputStream().write(imageData, 0, bytesRead);
             }

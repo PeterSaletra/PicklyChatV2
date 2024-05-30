@@ -53,34 +53,35 @@ public class SignUPController {
 
     @FXML
     public void signupButton(MouseEvent mouseEvent) throws IOException {
+        Stage dialogStage = new Stage();
+        Window mainWindow = ((Node) mouseEvent.getSource()).getScene().getWindow();
+
+        dialogStage.initModality(Modality.APPLICATION_MODAL);
+        dialogStage.setWidth(300);
+        dialogStage.setHeight(100);
+        dialogStage.setX(mainWindow.getX() + (mainWindow.getWidth() - dialogStage.getWidth()) / 2);
+        dialogStage.setY(mainWindow.getY() + (mainWindow.getHeight() - dialogStage.getHeight()) / 2);
+
+        Button okButton = new Button("OK");
+        okButton.setOnAction(event -> dialogStage.close());
+
         if (!usernameField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
             username = usernameField.getText();
             password = passwordField.getText();
             if(!password.equals(confirmPasswordField.getText())) {
-                Stage dialogStage = new Stage();
-                Window mainWindow = ((Node) mouseEvent.getSource()).getScene().getWindow();
 
-                dialogStage.initModality(Modality.APPLICATION_MODAL);
-                dialogStage.setWidth(300);
-                dialogStage.setHeight(100);
-
-                Button okButton = new Button("Ok");
-                okButton.setOnAction(event -> dialogStage.close());
-
-                VBox vbox = new VBox(new Text("WRONG PASSWORD"), okButton);
+                VBox vbox = new VBox(new Text("PASSWORDS MISMATCH"), okButton);
                 vbox.setAlignment(Pos.BOTTOM_CENTER);
                 vbox.setPadding(new Insets(15));
 
                 dialogStage.setScene(new Scene(vbox));
-                dialogStage.setX(mainWindow.getX() + (mainWindow.getWidth() - dialogStage.getWidth()) / 2);
-                dialogStage.setY(mainWindow.getY() + (mainWindow.getHeight() - dialogStage.getHeight()) / 2);
+
                 dialogStage.show();
 
             } else {
                 String data = username + " " + password;
                 if (profilePicture != null) {
                     App.sendToServer("REG/F");
-                    System.out.println(data);
                     App.sendToServer(data);
                     App.sendToServer(profilePicture);
                 } else {
@@ -91,9 +92,15 @@ public class SignUPController {
                 System.out.println(response);
 
                 if (response.equals("OK: 201")) {
-                    //App.changeScene(signUpButton, "chatScene.fxml");
-                } else if (response.equals("ERROR: 400")) {
-                    //username exists handler
+                    App.changeScene(signUpButton, "chatScene.fxml");
+                } else if (response.equals("Error: 404")) {
+                    VBox vbox = new VBox(new Text("USER ALREADY EXISTS"), okButton);
+                    vbox.setAlignment(Pos.BOTTOM_CENTER);
+                    vbox.setPadding(new Insets(15));
+
+                    dialogStage.setScene(new Scene(vbox));
+
+                    dialogStage.show();
                 }
             }
         }
