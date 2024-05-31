@@ -1,0 +1,20 @@
+[Database][2024-05-31][11:47:18.954] Successfully connected
+[Database][2024-05-31][11:47:27.757] User: root exists in database
+[Database][2024-05-31][11:48:05.964] User: root exists in database
+[Database][2024-05-31][11:57:26.526] User: root exists in database
+[Database][2024-05-31][11:59:20.837] User: root exists in database
+[Database][2024-05-31][12:05:53.461] User: root exists in database
+[Database][2024-05-31][12:06:41.184] User: root exists in database
+[Database][2024-05-31][12:06:58.034] User: root exists in database
+[Database][2024-05-31][12:09:11.374] User: root exists in database
+[Database][2024-05-31][12:09:27.274] User: root exists in database
+[Database][2024-05-31][12:10:24.354] User: root exists in database
+[Database][2024-05-31][12:13:03.832] User: root exists in database
+[Database][2024-05-31][12:13:32.860] User: root exists in database
+[Database][2024-05-31][12:13:52.903] User: root exists in database
+[Database][2024-05-31][12:15:38.988] User: root exists in database
+[Database][2024-05-31][12:16:14.240] User: root exists in database
+[Database][2024-05-31][12:16:31.137] User: root exists in database
+[Database][2024-05-31][12:21:30.976] User: root exists in database
+[Database][2024-05-31][12:26:16.703] User: root exists in database
+[Database][2024-05-31][13:26:48.059] User: root exists in database

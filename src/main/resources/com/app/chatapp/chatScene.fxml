@@ -31,8 +31,9 @@
         </top>
       <center>
          <HBox styleClass="chatWindow">
-               <TextArea prefHeight="440.0" prefWidth="575" />
-               <ScrollBar orientation="VERTICAL" prefWidth="25" />
+             <ScrollPane  fx:id="messageContainer" prefHeight="440.0" prefWidth="600">
+                 <VBox fx:id="messageVBox"> </VBox>
+             </ScrollPane>
          </HBox>
     </center>
       <right>
@@ -42,8 +43,8 @@
       </right>
         <bottom>
             <HBox>
-                <TextField minHeight="80" minWidth="500" />
-                <Button fx:id="sendMessageButton" minHeight="80" minWidth="100" styleClass="sendButton"> SEND </Button>
+                <TextField fx:id="messageBox" minHeight="80" minWidth="500"> </TextField>
+                <Button fx:id="sendMessageButton" minHeight="80" minWidth="100" styleClass="sendButton" onMouseClicked="#sendMessage"> SEND </Button>
                 <Circle fx:id="userImageCircle" radius="40" styleClass="userImage">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
