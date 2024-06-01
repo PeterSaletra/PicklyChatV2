@@ -1,8 +1,11 @@
 package com.app.chatapp.auth;
 
+import javax.crypto.KeyGenerator;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.*;
+import java.security.spec.KeySpec;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
@@ -66,7 +69,6 @@ public class ChatServer implements Runnable{
 
     }
 
-
     private void sendBroadcast(String nickname, String message){
         for(ConnectionHandler handler: activeUserHandlers){
             if(!handler.nickname.equals(nickname)){
@@ -121,7 +123,7 @@ public class ChatServer implements Runnable{
                             break;
                     }
 
-/*                    String message;
+                    String message;
                     while((message = in.readLine()) != null){
                         if(message.equals("QUIT")){
                             shutdown();
@@ -129,7 +131,7 @@ public class ChatServer implements Runnable{
                         }else {
                             sendBroadcast(nickname + ": " + message, nickname);
                         };
-                    }*/
+                    }
 
                 }
             }catch (Exception e){
