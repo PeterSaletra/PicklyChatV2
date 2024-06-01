@@ -28,13 +28,13 @@ import java.util.ResourceBundle;
 
 public class SignUPController {
 
-    private String username;
+    private String login;
     private String password;
     private File profilePicture;
     @FXML
     private Button signUpButton;
     @FXML
-    private TextField usernameField;
+    private TextField loginField;
     @FXML
     private PasswordField passwordField;
     @FXML
@@ -46,9 +46,28 @@ public class SignUPController {
     }
 
     @FXML
-    public void signupButton(MouseEvent mouseEvent) throws IOException {
+    public void signupButton(MouseEvent mouseEvent) throws Exception {
+        if(!loginField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
+            login = loginField.getText();
+            password = passwordField.getText();
 
-        if (!usernameField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
+            if(!password.equals(confirmPasswordField.getText())) {
+                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "PASSWORDS MISMATCH", "OK");
+            } else {
+                TransportController transportController = TransportController.getInstance();
+                transportController.setLogin(login);
+                transportController.setPassword(password);
+
+                if (transportController.signUp()) {
+                    App.executorService.submit(transportController);
+                    ControllerUtils.changeScene(signUpButton, "chatScene.fxml");
+                } else {
+                    ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY EXISTS", "OK");
+                }
+            }
+        }
+
+     /*   if (!usernameField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
             username = usernameField.getText();
             password = passwordField.getText();
             if(!password.equals(confirmPasswordField.getText())) {
@@ -72,7 +91,7 @@ public class SignUPController {
                     ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY EXISTS", "OK");
                 }
             }
-        }
+        }*/
     }
 
     public void fileSelection(MouseEvent mouseEvent) {

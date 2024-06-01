@@ -10,13 +10,21 @@ $XL:64;
   -fx-font-size: $M;
 }
 
-  .topBar{
-    -fx-background-color: #85aa9b;
-  }
-
+.topBar {
+  -fx-background-color: #85aa9b;
+}
 
 .rightPanel {
   -fx-background-color: #d0ded8;
 }
 
-
+.messageBox {
+  -fx-background-radius: 2em;
+  -fx-background-color: #85aa9b;
+  -fx-padding: 8;
+  -fx-wrap-text: true;
+  -fx-fill-width: true;
+  -fx-fill-height: true;
+  -fx-text-fill: black;
+  -fx-font-size: $S;
+}
