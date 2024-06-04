@@ -1,4 +1,0 @@
-[Server][2024-06-04][14:55:19.976] Server started
-[Server][2024-06-04][14:55:26.368] User: ff successfully logged in
-[Server][2024-06-04][14:55:28.493] User: root successfully logged in
-[Server][2024-06-04][14:56:49.835] User: ff logged out
