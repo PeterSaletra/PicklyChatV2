@@ -1,4 +1,6 @@
 package com.app.chatapp;
+import javafx.application.Platform;
+import javafx.collections.MapChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -85,11 +87,20 @@ public class ChatSceneController implements Initializable {
             }
         });
 
+        transportController.receivedMessages.addListener((MapChangeListener<String, ChatMessage>) change -> {
+            if (change.wasAdded()) {
+                String sender = change.getKey();
+                ChatMessage message = change.getValueAdded();
+                System.out.println("DUPSKO: " + message.getMessage());
+                ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(sender, new ArrayList<>());
+                userMessages.add(message);
+                userMessagesMap.put(sender, userMessages);
 
-/*        transportController.receivedMessages.addListener(MapChangeListener<? super K,? super V> listener) {
-        }
-
-        }*/
+                if (Objects.equals(sender, currentUser)) {
+                    Platform.runLater(this::updateChatWindow);
+                }
+            }
+        });
     }
 
     @FXML
@@ -103,9 +114,9 @@ public class ChatSceneController implements Initializable {
     private void updateChatWindow() {
 
         messageVBox.getChildren().clear();
+
         ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
         System.out.println(userMessages.isEmpty());
-
 
         for (ChatMessage msgLabel : userMessages) {
             messageVBox.getChildren().add(msgLabel.getMessage());
