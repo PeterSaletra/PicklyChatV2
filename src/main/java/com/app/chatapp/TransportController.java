@@ -10,6 +10,8 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 public class TransportController implements Runnable {
     private static TransportController instance;
@@ -24,8 +26,7 @@ public class TransportController implements Runnable {
 
     public ObservableList<String> users = FXCollections.observableArrayList();
 
-   // public ObservableMap<String, ArrayList<Label>> userMessagesList = FXCollections.observableHashMap();
-
+    public ObservableMap<String, ChatSceneController.ChatMessage> receivedMessages = FXCollections.observableHashMap();
 
     private TransportController(){};
 
@@ -177,6 +178,16 @@ public class TransportController implements Runnable {
                             });
                         }
                     }
+                } else {
+                    List<String> splitedMessage = new ArrayList(Arrays.asList(message.split(" ")));
+                    String sender = splitedMessage.getFirst();
+                    splitedMessage.remove(0);
+
+                    Label label = new Label(String.join(" ",splitedMessage));
+                    ChatSceneController.ChatMessage chatMessage = new ChatSceneController.ChatMessage(label, true);
+                    Platform.runLater(() -> {
+                        receivedMessages.put(sender, chatMessage);
+                    });
                 }
             }
         } catch (IOException e) {

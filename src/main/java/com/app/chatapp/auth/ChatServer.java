@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class ChatServer implements Runnable{
@@ -118,9 +120,13 @@ public class ChatServer implements Runnable{
                         shutdown();
                         return 0;
                     }else {
-                        System.out.println(message);
-                        System.out.println(in.readLine());
-                    };
+                        List<String> splitedMessage = new ArrayList(Arrays.asList(message.split(" ")));
+                        String sender = splitedMessage.getFirst();
+                        splitedMessage.remove(0);
+                        String reciver = splitedMessage.getFirst();
+                        splitedMessage.remove(0);
+                        sendToOtherUser(sender, reciver, String.join(" ",splitedMessage));
+                    }
                 }
 
             }catch (Exception e){
@@ -244,6 +250,15 @@ public class ChatServer implements Runnable{
         for(ConnectionHandler handler: activeUserHandlers){
             if(!handler.nickname.equals(nickname)){
                 handler.sendMessage(prefix + " " + message);
+            }
+        }
+    }
+
+    private void sendToOtherUser(String sender, String reciver, String message){
+        for(ConnectionHandler handler: activeUserHandlers){
+            if(handler.nickname.equals(reciver)){
+                handler.sendMessage(sender + " " + message);
+                break;
             }
         }
     }

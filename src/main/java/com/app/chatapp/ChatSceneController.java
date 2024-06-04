@@ -3,6 +3,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -43,9 +44,9 @@ public class ChatSceneController implements Initializable {
     @FXML
     private VBox messageVBox;
 
-
-    public HashMap<String, ArrayList<ChatMessage>> userMessagesMap = new HashMap<>();
     private String currentUser;
+
+    public HashMap<String, ArrayList<ChatSceneController.ChatMessage>> userMessagesMap = new HashMap<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -83,6 +84,12 @@ public class ChatSceneController implements Initializable {
                 }
             }
         });
+
+
+/*        transportController.receivedMessages.addListener(MapChangeListener<? super K,? super V> listener) {
+        }
+
+        }*/
     }
 
     @FXML
@@ -125,6 +132,7 @@ public class ChatSceneController implements Initializable {
 
         ChatMessage chatMessage = new ChatMessage(label, false);
         ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
+
         userMessages.add(chatMessage);
         userMessagesMap.put(currentUser, userMessages);
 
@@ -135,11 +143,8 @@ public class ChatSceneController implements Initializable {
             messageVBox.getChildren().add(msgLabel.getMessage());
         }
 
-
         TransportController transportController = TransportController.getInstance();
-        TransportController.sendToServer(message);
-        TransportController.sendToServer(transportController.getLogin() + " " + currentUser);
-
+        TransportController.sendToServer(transportController.getLogin() + " " + currentUser + " " + message);
 
         messageContainer.setContent(messageVBox);
         messageContainer.setFitToHeight(true);
@@ -150,7 +155,7 @@ public class ChatSceneController implements Initializable {
     }
 
 
-    public class ChatMessage {
+    public static class ChatMessage {
         private Label message;
         private boolean isReceived;
 

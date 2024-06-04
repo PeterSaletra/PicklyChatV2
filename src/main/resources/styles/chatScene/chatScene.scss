@@ -23,8 +23,9 @@ $XL:64;
   -fx-background-color: #85aa9b;
   -fx-padding: 8;
   -fx-wrap-text: true;
-  -fx-fill-width: true;
-  -fx-fill-height: true;
+  -fx-max-width: 400;
+   -fx-fill-width: true;
+   -fx-fill-height: true;
   -fx-text-fill: black;
   -fx-font-size: $S;
 }
