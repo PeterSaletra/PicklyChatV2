@@ -1,10 +1,18 @@
 package com.app.chatapp.auth;
 
+import javax.crypto.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -15,6 +23,7 @@ public class ChatServer implements Runnable{
     private ServerSocket serverSocket;
     private ExecutorService pool;
     private boolean done;
+    private SecretKey sessionKey = null;
     private final int port;
     private final DataBase dataBase;
     private final Logger logger;
@@ -39,6 +48,9 @@ public class ChatServer implements Runnable{
             pool = Executors.newCachedThreadPool();
 
             logger.echo("Server started");
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+            keyGen.init(256);
+            sessionKey = keyGen.generateKey();
 
             while (!done){
                 if (serverSocket.isClosed()){
@@ -55,7 +67,9 @@ public class ChatServer implements Runnable{
                 }
             }
         }catch (IOException e){
-            throw  new RuntimeException(e);
+            logger.err("Unknown error occurred: ", e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            logger.err("Error with generating key: ", e.getMessage());
         }
 
     }
@@ -66,9 +80,26 @@ public class ChatServer implements Runnable{
         private PrintWriter out;
         private String nickname;
         private boolean logged;
+        private Cipher encryptAES;
+        private Cipher encryptRSA;
+        private Cipher decryptAES;
 
         public ConnectionHandler(Socket client){
             this.client = client;
+            try {
+                this.encryptAES = Cipher.getInstance("AES");
+                this.decryptAES = Cipher.getInstance("AES");
+                this.encryptRSA = Cipher.getInstance("RSA");
+
+                encryptAES.init(Cipher.ENCRYPT_MODE, sessionKey);
+                decryptAES.init(Cipher.DECRYPT_MODE, sessionKey);
+            } catch (NoSuchPaddingException e) {
+                logger.err("Error occured: ", e.getMessage());
+            } catch (NoSuchAlgorithmException e) {
+                logger.err("Error occured: ", e.getMessage());
+            } catch (InvalidKeyException e) {
+                logger.err("Error occured: ", e.getMessage());
+            }
         }
 
         @Override
@@ -77,15 +108,19 @@ public class ChatServer implements Runnable{
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
+                String userPublicKey = in.readLine();
+                logger.echo("Recived public key");
+                sendSessionKey(userPublicKey);
+
                 while(!logged) {
-                    String loginOrRegister = in.readLine();
-                    String userData = in.readLine().strip();
+                    String loginOrRegister = decryptMessage(in.readLine());
+                    String userData = decryptMessage(in.readLine().strip());
                     String []userDataArray = userData.split(" ");
                     if(userDataArray.length < 2){
                         sendMessage("Error: 400");
                     }
                     nickname = userDataArray[0];
-                    //logger.echo("User: " + nickname + " connected to server");
+                    logger.echo("User: " + nickname + " connected to server");
                     String password = userDataArray[userDataArray.length-1];
 
 
@@ -110,9 +145,9 @@ public class ChatServer implements Runnable{
 
                 sendUpdateActiveUsers();
                 sendBroadcast("USR", nickname, nickname);
-
                 String message;
                 while((message = in.readLine()) != null){
+                    message = decryptMessage(message);
                     if(message.equals("QUIT")){
                         shutdown();
                         return 0;
@@ -133,14 +168,55 @@ public class ChatServer implements Runnable{
             return null;
         }
 
+        private String encryptMessage(String message){
+            String newMessage = "";
+            try{
+                byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8);
+                byte[] encryptedBytes = encryptAES.doFinal(messageInBytes);
+                newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
+            }catch (IllegalBlockSizeException e){
+                logger.err("Error occurred while encrypting message", e.getMessage());
+            }catch(BadPaddingException ed){
+                logger.err("Error occurred while encrypting message", ed.getMessage());
+            }
+            return newMessage;
+        }
+
+        private String decryptMessage(String message){
+            String newMessage = "";
+            try{
+                byte[] messageInBytes = Base64.getDecoder().decode(message);
+                byte[] encryptedBytes = decryptAES.doFinal(messageInBytes);
+                newMessage = new String(encryptedBytes, StandardCharsets.UTF_8);
+            }catch (IllegalBlockSizeException e){
+                logger.err("Error occurred while encrypting message", e.getMessage());
+            }catch(BadPaddingException e){
+                logger.err("Error occurred while encrypting message", e.getMessage());
+            }
+            return newMessage;
+        }
+
+        private void sendSessionKey(String userPublicKey){
+            try{
+                byte[] userPublicKeyBytes = Base64.getDecoder().decode(userPublicKey);
+                X509EncodedKeySpec spec = new X509EncodedKeySpec(userPublicKeyBytes);
+                PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(spec);
+                encryptRSA.init(Cipher.ENCRYPT_MODE, publicKey);
+                byte[] encryptedSessionKey = encryptRSA.doFinal(Base64.getDecoder().decode(Base64.getEncoder().encodeToString(sessionKey.getEncoded())));
+                out.println(Base64.getEncoder().encodeToString(encryptedSessionKey));
+            }catch (Exception e){
+                logger.err("Error occurred while sending session key: ", e.getMessage());
+            }
+        }
+
         private void sendMessage(String message){
-            out.println(message);
+            String encryptedMessage = encryptMessage(message);
+            out.println(encryptedMessage);
         }
 
         private void sendUpdateActiveUsers(){
             String activeClientUpdate = "ACTIVE: " + String.join(" ", activeUsersName);
             sendMessage(activeClientUpdate);
-            //sendBroadcast(activeClientUpdate, nickname);
         }
 
         private String receiveUserPicture(){
