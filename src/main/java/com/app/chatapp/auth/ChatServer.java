@@ -1,17 +1,16 @@
 package com.app.chatapp.auth;
 
-import javax.crypto.KeyGenerator;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.*;
-import java.security.spec.KeySpec;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class ChatServer implements Runnable{
+
     private ArrayList<ConnectionHandler> activeUserHandlers;
-    private ArrayList<Future<Integer>> activeUserThreads;
     private ArrayList<String> activeUsersName;
     private ServerSocket serverSocket;
     private ExecutorService pool;
@@ -21,18 +20,11 @@ public class ChatServer implements Runnable{
     private final Logger logger;
 
     public ChatServer() throws Exception {
-        this.activeUserHandlers = new ArrayList<>();
-        this.activeUserThreads = new ArrayList<>();
-        this.activeUsersName = new ArrayList<>();
-        this.done = false;
-        this.port = 9999;
-        this.dataBase = new DataBase();
-        this.logger = new Logger("Server");
+        this(9999);
     }
 
     public ChatServer(int port) throws Exception {
         this.activeUserHandlers = new ArrayList<>();
-        this.activeUserThreads = new ArrayList<>();
         this.activeUsersName = new ArrayList<>();
         this.done = false;
         this.port = port;
@@ -57,8 +49,7 @@ public class ChatServer implements Runnable{
                     Socket client = serverSocket.accept();
                     ConnectionHandler handler = new ConnectionHandler(client);
                     activeUserHandlers.add(handler);
-                    Future<Integer> future = pool.submit(handler);
-                    activeUserThreads.add(future);
+                    pool.submit(handler);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
@@ -67,14 +58,6 @@ public class ChatServer implements Runnable{
             throw  new RuntimeException(e);
         }
 
-    }
-
-    private void sendBroadcast(String nickname, String message){
-        for(ConnectionHandler handler: activeUserHandlers){
-            if(!handler.nickname.equals(nickname)){
-                handler.sendMessage(message);
-             }
-        }
     }
 
     class ConnectionHandler implements Callable<Integer>{
@@ -102,7 +85,7 @@ public class ChatServer implements Runnable{
                         sendMessage("Error: 400");
                     }
                     nickname = userDataArray[0];
-                    logger.echo("User: " + nickname + " connected to server");
+                    //logger.echo("User: " + nickname + " connected to server");
                     String password = userDataArray[userDataArray.length-1];
 
 
@@ -120,20 +103,29 @@ public class ChatServer implements Runnable{
                         default:
                             logger.err("User: " + nickname + " sent unknown command", "Error: 404 Unknown Command");
                             sendMessage("Error: 404 Unknown Command");
-                            break;
-                    }
-
-                    String message;
-                    while((message = in.readLine()) != null){
-                        if(message.equals("QUIT")){
-                            shutdown();
-                            return 0;
-                        }else {
-                            sendBroadcast(nickname + ": " + message, nickname);
-                        };
+                            return -1;
                     }
 
                 }
+
+                sendUpdateActiveUsers();
+                sendBroadcast("USR", nickname, nickname);
+
+                String message;
+                while((message = in.readLine()) != null){
+                    if(message.equals("QUIT")){
+                        shutdown();
+                        return 0;
+                    }else {
+                        List<String> splitedMessage = new ArrayList(Arrays.asList(message.split(" ")));
+                        String sender = splitedMessage.getFirst();
+                        splitedMessage.remove(0);
+                        String reciver = splitedMessage.getFirst();
+                        splitedMessage.remove(0);
+                        sendToOtherUser(sender, reciver, String.join(" ",splitedMessage));
+                    }
+                }
+
             }catch (Exception e){
                 e.printStackTrace();
 
@@ -141,11 +133,14 @@ public class ChatServer implements Runnable{
             return null;
         }
 
-        private void sendMessage(String message){out.println(message);}
+        private void sendMessage(String message){
+            out.println(message);
+        }
 
         private void sendUpdateActiveUsers(){
-            String activeClientUpdate = "ACTIVE: " + String.join(",", activeUsersName);
-            sendBroadcast(activeClientUpdate, nickname);
+            String activeClientUpdate = "ACTIVE: " + String.join(" ", activeUsersName);
+            sendMessage(activeClientUpdate);
+            //sendBroadcast(activeClientUpdate, nickname);
         }
 
         private String receiveUserPicture(){
@@ -179,18 +174,23 @@ public class ChatServer implements Runnable{
         }
 
         private boolean login(String password){
-            if(dataBase.doesUsernameExist(nickname)) {
-                if(dataBase.getUserPassword(nickname).equals(password)){
-                    logger.echo("User: " + nickname + " successfully logged in");
-                    sendMessage("OK: 200");
-                    activeUsersName.add(nickname);
-                    return true;
-                } else{
-                    logger.err("Error occurred", "Wrong password by user: " + nickname);
-                    sendMessage("Error: 401");
+            if(!activeUsersName.contains(nickname)) {
+                if (dataBase.doesUsernameExist(nickname)) {
+                    if (dataBase.getUserPassword(nickname).equals(password)) {
+                        logger.echo("User: " + nickname + " successfully logged in");
+                        sendMessage("OK: 200");
+                        activeUsersName.add(nickname);
+                        return true;
+                    } else {
+                        logger.err("Error occurred", "Wrong password by user: " + nickname);
+                        sendMessage("Error: 401");
+                    }
+                } else {
+                    sendMessage("Error: 404");
                 }
-            }else{
-                sendMessage("Error: 404");
+            } else {
+                logger.err("Error occurred", "User is logged in: " + nickname);
+                sendMessage("Error: 405");
             }
             return false;
         }
@@ -227,10 +227,9 @@ public class ChatServer implements Runnable{
             try {
                 activeUsersName.remove(nickname);
                 logger.echo("User: " + nickname + " logged out");
-                sendBroadcast(nickname + " left chat", nickname);
-                sendUpdateActiveUsers();
-
+                //sendUpdateActiveUsers();
                 activeUserHandlers.remove(this);
+                sendBroadcast("QUIT", nickname, nickname);
 
                 in.close();
                 out.close();
@@ -244,6 +243,22 @@ public class ChatServer implements Runnable{
         }
     }
 
+    private void sendBroadcast(String prefix, String nickname, String message){
+        for(ConnectionHandler handler: activeUserHandlers){
+            if(!handler.nickname.equals(nickname)){
+                handler.sendMessage(prefix + " " + message);
+            }
+        }
+    }
+
+    private void sendToOtherUser(String sender, String reciver, String message){
+        for(ConnectionHandler handler: activeUserHandlers){
+            if(handler.nickname.equals(reciver)){
+                handler.sendMessage(sender + " " + message);
+                break;
+            }
+        }
+    }
 
     public static void main(String[] args) {
         try {

@@ -1,5 +1,6 @@
 package com.app.chatapp;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -20,6 +21,8 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SignINController {
 
@@ -35,47 +38,29 @@ public class SignINController {
 
     @FXML
     public void switchToSignUp(MouseEvent event) throws IOException {
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        Parent root = FXMLLoader.load(Objects.requireNonNull(App.class.getResource("sign-up-form.fxml")));
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        ControllerUtils.changeScene(((Node)event.getSource()), "sign-up-form.fxml");
     }
 
     @FXML
-    public void loginButton(MouseEvent mouseEvent) throws IOException {
+    public void loginButton(MouseEvent mouseEvent) throws Exception {
         if(!loginField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
             login = loginField.getText();
             password = passwordField.getText();
             System.out.println(loginField.getText());
-            String data = login + " " + password;
-            App.sendToServer("LOGIN");
-            App.sendToServer(data);
-            String response = App.receiveFromServer();
-            System.out.println(response);
 
-            if (response.equals("OK: 200")) {
-                App.changeScene(signInButton, "chatScene.fxml");
+            TransportController transportController = TransportController.getInstance();
+            transportController.setLogin(login);
+            transportController.setPassword(password);
+
+            if(transportController.singIn() == 1) {
+                App.executorService.submit(transportController);
+                ControllerUtils.changeScene(signInButton, "chatScene.fxml");
+            } else if (transportController.singIn() == 0) {
+                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY LOGGED IN", "OK");
             } else {
-                Stage dialogStage = new Stage();
-                Window mainWindow = ((Node) mouseEvent.getSource()).getScene().getWindow();
-
-                dialogStage.initModality(Modality.APPLICATION_MODAL);
-                dialogStage.setWidth(300);
-                dialogStage.setHeight(100);
-
-                Button okButton = new Button("Ok");
-                okButton.setOnAction(event -> dialogStage.close());
-
-                VBox vbox = new VBox(new Text("WRONG PASSWORD"), okButton);
-                vbox.setAlignment(Pos.BOTTOM_CENTER);
-                vbox.setPadding(new Insets(15));
-
-                dialogStage.setScene(new Scene(vbox));
-                dialogStage.setX(mainWindow.getX() + (mainWindow.getWidth() - dialogStage.getWidth()) / 2);
-                dialogStage.setY(mainWindow.getY() + (mainWindow.getHeight() - dialogStage.getHeight()) / 2);
-                dialogStage.show();
+                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "WRONG PASSWORD", "OK");
             }
+
         }
     }
 
