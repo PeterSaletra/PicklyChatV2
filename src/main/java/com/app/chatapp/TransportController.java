@@ -10,7 +10,6 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class TransportController implements Runnable {
@@ -18,7 +17,7 @@ public class TransportController implements Runnable {
 
     private String login;
     private String password;
-    private Boolean isRegister = false;
+    private Boolean isConnected = false;
 
     private static Socket socket = null;
     private static BufferedReader in = null;
@@ -45,8 +44,8 @@ public class TransportController implements Runnable {
         this.password = password;
     }
 
-    public void setIsRegister(Boolean isRegister) {
-        this.isRegister = isRegister;
+    public Boolean getIsConnected() {
+        return isConnected;
     }
 
     public static void sendToServer(String data){
@@ -107,6 +106,7 @@ public class TransportController implements Runnable {
         socket = new Socket("127.0.0.1", 9999);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        isConnected = true;
 
         sendToServer("REG/N");
         sendToServer(String.format("%s %s", login, password));
@@ -115,6 +115,7 @@ public class TransportController implements Runnable {
         assert response != null;
         if (!response.equals("OK: 201")) {
             socket.close();
+            isConnected = false;
             return false;
         }
 
@@ -129,6 +130,7 @@ public class TransportController implements Runnable {
         socket = new Socket("127.0.0.1", 9999);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        isConnected = true;
 
         sendToServer("LOGIN");
         sendToServer(String.format("%s %s", login, password));
@@ -138,6 +140,7 @@ public class TransportController implements Runnable {
         assert response != null;
         if (!response.equals("OK: 200")) {
             socket.close();
+            isConnected = false;
             if(response.equals("Error: 405")){
                 return 0;
             } else{

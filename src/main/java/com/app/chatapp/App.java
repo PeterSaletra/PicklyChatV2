@@ -31,7 +31,9 @@ public class App extends Application {
        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                TransportController.sendToServer("QUIT");
+                if(TransportController.getInstance().getIsConnected()) {
+                    TransportController.sendToServer("QUIT");
+                }
                 stage.close();
                 System.exit(1);
             }
