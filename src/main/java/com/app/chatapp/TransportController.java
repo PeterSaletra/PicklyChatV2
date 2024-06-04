@@ -1,5 +1,6 @@
 package com.app.chatapp;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -92,6 +93,11 @@ public class TransportController implements Runnable {
         return null;
     }
 
+
+    public String getLogin(){
+        return login;
+    }
+
     public Boolean signUp() throws Exception {
         if (login == null || password == null) {
             return false;
@@ -148,19 +154,27 @@ public class TransportController implements Runnable {
             while ((message = in.readLine()) != null) {
                 if(message.startsWith("USR")){
                     String[] newUser = message.split(" ");
-                    users.add(newUser[1]);
-/*                    ArrayList<Label> userMessages = userMessagesList.getOrDefault("root", new ArrayList<>());
+                    Platform.runLater(() -> {
+                        users.add(newUser[1]);
+                    });
+
+                   /* ArrayList<Label> userMessages = userMessagesList.getOrDefault("root", new ArrayList<>());
                     Label label = new Label("Hello");
                     userMessages.add(label);
                     userMessagesList.put("root", userMessages);*/
+
                 } else if (message.startsWith("QUIT")){
                     String[] leavingUser = message.split(" ");
+                    Platform.runLater(() -> {
                     users.remove(leavingUser[1]);
+                    });
                 } else if (message.startsWith("ACTIVE: ")){
                     String[] newUser = message.split(" ");
                     for (String user : newUser){
                         if(!user.equals(login) && !user.equals("ACTIVE:")) {
+                            Platform.runLater(() -> {
                             users.add(user);
+                            });
                         }
                     }
                 }

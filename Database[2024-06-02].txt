@@ -1,0 +1,4 @@
+[Database][2024-06-02][23:04:43.933] Successfully connected
+[Database][2024-06-02][23:04:50.236] User: root exists in database
+[Database][2024-06-02][23:07:28.904] User: root exists in database
+[Database][2024-06-02][23:08:12.140] User: root exists in database

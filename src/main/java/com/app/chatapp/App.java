@@ -28,14 +28,14 @@ public class App extends Application {
         stage.setY(Screen.getPrimary().getBounds().getHeight()/8);
         stage.show();
 
-/*        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
                 TransportController.sendToServer("QUIT");
                 stage.close();
                 System.exit(1);
             }
-        });*/
+        });
 
     }
 

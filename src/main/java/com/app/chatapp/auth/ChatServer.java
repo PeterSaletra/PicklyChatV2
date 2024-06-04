@@ -118,7 +118,8 @@ public class ChatServer implements Runnable{
                         shutdown();
                         return 0;
                     }else {
-                        //sendBroadcast(nickname + ": " + message, nickname);
+                        System.out.println(message);
+                        System.out.println(in.readLine());
                     };
                 }
 

@@ -44,7 +44,7 @@ public class ChatSceneController implements Initializable {
     private VBox messageVBox;
 
 
-    public HashMap<String, ArrayList<Label>> userMessagesMap = new HashMap<>();
+    public HashMap<String, ArrayList<ChatMessage>> userMessagesMap = new HashMap<>();
     private String currentUser;
 
     @Override
@@ -96,16 +96,20 @@ public class ChatSceneController implements Initializable {
     private void updateChatWindow() {
 
         messageVBox.getChildren().clear();
-        ArrayList<Label> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
+        ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
         System.out.println(userMessages.isEmpty());
 
-        messageVBox.getChildren().addAll(userMessages);
+
+        for (ChatMessage msgLabel : userMessages) {
+            messageVBox.getChildren().add(msgLabel.getMessage());
+        }
+
         messageContainer.setContent(messageVBox);
     }
 
     @FXML
     public void enterSettings(MouseEvent event) throws IOException {
-        ControllerUtils.changeScene(((Node)event.getSource()),"settingScene.fxml");
+        ControllerUtils.changeScene(((Node)event.getSource()),"settingsScene.fxml");
     }
 
 
@@ -118,23 +122,49 @@ public class ChatSceneController implements Initializable {
         Label label = new Label(message);
         label.getStyleClass().add("messageBox");
 
-        ArrayList<Label> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
-        userMessages.add(label);
+
+        ChatMessage chatMessage = new ChatMessage(label, false);
+        ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
+        userMessages.add(chatMessage);
         userMessagesMap.put(currentUser, userMessages);
 
         messageVBox.getChildren().clear();
 
         // Add all labels to messageVBox
-        for (Label msgLabel : userMessages) {
-            messageVBox.getChildren().add(msgLabel);
+        for (ChatMessage msgLabel : userMessages) {
+            messageVBox.getChildren().add(msgLabel.getMessage());
         }
 
-       // messageVBox = userMessages;
+
+        TransportController transportController = TransportController.getInstance();
+        TransportController.sendToServer(message);
+        TransportController.sendToServer(transportController.getLogin() + " " + currentUser);
+
+
         messageContainer.setContent(messageVBox);
         messageContainer.setFitToHeight(true);
         messageContainer.setFitToWidth(true);
         messageContainer.vvalueProperty().bind(messageVBox.heightProperty());
 
         messageBox.clear();
+    }
+
+
+    public class ChatMessage {
+        private Label message;
+        private boolean isReceived;
+
+        public ChatMessage(Label message, boolean isReceived) {
+            this.message = message;
+            this.isReceived = isReceived;
+        }
+
+        public Label getMessage() {
+            return message;
+        }
+
+        public boolean isReceived() {
+            return isReceived;
+        }
     }
 }
