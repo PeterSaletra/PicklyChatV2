@@ -32,7 +32,7 @@
         <center>
             <HBox styleClass="chatWindow">
                 <ScrollPane  fx:id="messageContainer" prefHeight="440.0" prefWidth="600">
-                    <VBox fx:id="messageVBox"> </VBox>
+                    <VBox fx:id="messageVBox" styleClass="messageVBox" maxWidth="600"> </VBox>
                 </ScrollPane>
             </HBox>
         </center>

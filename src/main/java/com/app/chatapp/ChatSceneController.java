@@ -14,6 +14,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
@@ -91,6 +92,7 @@ public class ChatSceneController implements Initializable {
             if (change.wasAdded()) {
                 String sender = change.getKey();
                 ChatMessage message = change.getValueAdded();
+                message.getMessage().getStyleClass().add("messageBoxSender");
                 System.out.println("DUPSKO: " + message.getMessage());
                 ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(sender, new ArrayList<>());
                 userMessages.add(message);
@@ -119,7 +121,16 @@ public class ChatSceneController implements Initializable {
         System.out.println(userMessages.isEmpty());
 
         for (ChatMessage msgLabel : userMessages) {
-            messageVBox.getChildren().add(msgLabel.getMessage());
+            HBox costamHBox = new HBox(msgLabel.getMessage());
+            costamHBox.setPrefWidth(570);
+            if(msgLabel.isReceived) {
+                costamHBox.setAlignment(Pos.CENTER_RIGHT);
+            } else {
+                costamHBox.setAlignment(Pos.CENTER_LEFT);
+            }
+
+            messageVBox.setFillWidth(true);
+            messageVBox.getChildren().add(costamHBox);
         }
 
         messageContainer.setContent(messageVBox);
@@ -139,7 +150,7 @@ public class ChatSceneController implements Initializable {
 
         Label label = new Label(message);
         label.getStyleClass().add("messageBox");
-
+        label.getStyle();
 
         ChatMessage chatMessage = new ChatMessage(label, false);
         ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
@@ -151,15 +162,25 @@ public class ChatSceneController implements Initializable {
 
         // Add all labels to messageVBox
         for (ChatMessage msgLabel : userMessages) {
-            messageVBox.getChildren().add(msgLabel.getMessage());
+            HBox costamHBox = new HBox(msgLabel.getMessage());
+            costamHBox.setPrefWidth(570);
+            if(msgLabel.isReceived) {
+                costamHBox.setAlignment(Pos.CENTER_RIGHT);
+            } else {
+                costamHBox.setAlignment(Pos.CENTER_LEFT);
+            }
+
+            messageVBox.setFillWidth(true);
+            messageVBox.getChildren().add(costamHBox);
         }
 
         TransportController transportController = TransportController.getInstance();
         TransportController.sendToServer(transportController.getLogin() + " " + currentUser + " " + message);
 
+
+
+
         messageContainer.setContent(messageVBox);
-        messageContainer.setFitToHeight(true);
-        messageContainer.setFitToWidth(true);
         messageContainer.vvalueProperty().bind(messageVBox.heightProperty());
 
         messageBox.clear();
