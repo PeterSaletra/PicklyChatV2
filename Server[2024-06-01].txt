@@ -1,2 +1,0 @@
-[Server][2024-06-01][20:21:26.156] Server started
-[Server][2024-06-01][20:21:48.309] User: root successfully logged in
