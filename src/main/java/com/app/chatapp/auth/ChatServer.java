@@ -1,35 +1,39 @@
 package com.app.chatapp.auth;
 
+import javax.crypto.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class ChatServer implements Runnable{
+
     private ArrayList<ConnectionHandler> activeUserHandlers;
-    private ArrayList<Future<Integer>> activeUserThreads;
     private ArrayList<String> activeUsersName;
     private ServerSocket serverSocket;
     private ExecutorService pool;
     private boolean done;
+    private SecretKey sessionKey = null;
     private final int port;
     private final DataBase dataBase;
     private final Logger logger;
 
     public ChatServer() throws Exception {
-        this.activeUserHandlers = new ArrayList<>();
-        this.activeUserThreads = new ArrayList<>();
-        this.activeUsersName = new ArrayList<>();
-        this.done = false;
-        this.port = 9999;
-        this.dataBase = new DataBase();
-        this.logger = new Logger("Server");
+        this(9999);
     }
 
     public ChatServer(int port) throws Exception {
         this.activeUserHandlers = new ArrayList<>();
-        this.activeUserThreads = new ArrayList<>();
         this.activeUsersName = new ArrayList<>();
         this.done = false;
         this.port = port;
@@ -44,6 +48,9 @@ public class ChatServer implements Runnable{
             pool = Executors.newCachedThreadPool();
 
             logger.echo("Server started");
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+            keyGen.init(256);
+            sessionKey = keyGen.generateKey();
 
             while (!done){
                 if (serverSocket.isClosed()){
@@ -54,25 +61,17 @@ public class ChatServer implements Runnable{
                     Socket client = serverSocket.accept();
                     ConnectionHandler handler = new ConnectionHandler(client);
                     activeUserHandlers.add(handler);
-                    Future<Integer> future = pool.submit(handler);
-                    activeUserThreads.add(future);
+                    pool.submit(handler);
                 }catch (Exception e){
                     e.printStackTrace();
                 }
             }
         }catch (IOException e){
-            throw  new RuntimeException(e);
+            logger.err("Unknown error occurred: ", e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            logger.err("Error with generating key: ", e.getMessage());
         }
 
-    }
-
-
-    private void sendBroadcast(String nickname, String message){
-        for(ConnectionHandler handler: activeUserHandlers){
-            if(!handler.nickname.equals(nickname)){
-                handler.sendMessage(message);
-             }
-        }
     }
 
     class ConnectionHandler implements Callable<Integer>{
@@ -81,9 +80,26 @@ public class ChatServer implements Runnable{
         private PrintWriter out;
         private String nickname;
         private boolean logged;
+        private Cipher encryptAES;
+        private Cipher encryptRSA;
+        private Cipher decryptAES;
 
         public ConnectionHandler(Socket client){
             this.client = client;
+            try {
+                this.encryptAES = Cipher.getInstance("AES");
+                this.decryptAES = Cipher.getInstance("AES");
+                this.encryptRSA = Cipher.getInstance("RSA");
+
+                encryptAES.init(Cipher.ENCRYPT_MODE, sessionKey);
+                decryptAES.init(Cipher.DECRYPT_MODE, sessionKey);
+            } catch (NoSuchPaddingException e) {
+                logger.err("Error occured: ", e.getMessage());
+            } catch (NoSuchAlgorithmException e) {
+                logger.err("Error occured: ", e.getMessage());
+            } catch (InvalidKeyException e) {
+                logger.err("Error occured: ", e.getMessage());
+            }
         }
 
         @Override
@@ -92,9 +108,13 @@ public class ChatServer implements Runnable{
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
+                String userPublicKey = in.readLine();
+                logger.echo("Recived public key");
+                sendSessionKey(userPublicKey);
+
                 while(!logged) {
-                    String loginOrRegister = in.readLine();
-                    String userData = in.readLine().strip();
+                    String loginOrRegister = decryptMessage(in.readLine());
+                    String userData = decryptMessage(in.readLine().strip());
                     String []userDataArray = userData.split(" ");
                     if(userDataArray.length < 2){
                         sendMessage("Error: 400");
@@ -118,20 +138,29 @@ public class ChatServer implements Runnable{
                         default:
                             logger.err("User: " + nickname + " sent unknown command", "Error: 404 Unknown Command");
                             sendMessage("Error: 404 Unknown Command");
-                            break;
+                            return -1;
                     }
 
-/*                    String message;
-                    while((message = in.readLine()) != null){
-                        if(message.equals("QUIT")){
-                            shutdown();
-                            return 0;
-                        }else {
-                            sendBroadcast(nickname + ": " + message, nickname);
-                        };
-                    }*/
-
                 }
+
+                sendUpdateActiveUsers();
+                sendBroadcast("USR", nickname, nickname);
+                String message;
+                while((message = in.readLine()) != null){
+                    message = decryptMessage(message);
+                    if(message.equals("QUIT")){
+                        shutdown();
+                        return 0;
+                    }else {
+                        List<String> splitedMessage = new ArrayList(Arrays.asList(message.split(" ")));
+                        String sender = splitedMessage.getFirst();
+                        splitedMessage.remove(0);
+                        String reciver = splitedMessage.getFirst();
+                        splitedMessage.remove(0);
+                        sendToOtherUser(sender, reciver, String.join(" ",splitedMessage));
+                    }
+                }
+
             }catch (Exception e){
                 e.printStackTrace();
 
@@ -139,11 +168,55 @@ public class ChatServer implements Runnable{
             return null;
         }
 
-        private void sendMessage(String message){out.println(message);}
+        private String encryptMessage(String message){
+            String newMessage = "";
+            try{
+                byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8);
+                byte[] encryptedBytes = encryptAES.doFinal(messageInBytes);
+                newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
+            }catch (IllegalBlockSizeException e){
+                logger.err("Error occurred while encrypting message", e.getMessage());
+            }catch(BadPaddingException ed){
+                logger.err("Error occurred while encrypting message", ed.getMessage());
+            }
+            return newMessage;
+        }
+
+        private String decryptMessage(String message){
+            String newMessage = "";
+            try{
+                byte[] messageInBytes = Base64.getDecoder().decode(message);
+                byte[] encryptedBytes = decryptAES.doFinal(messageInBytes);
+                newMessage = new String(encryptedBytes, StandardCharsets.UTF_8);
+            }catch (IllegalBlockSizeException e){
+                logger.err("Error occurred while encrypting message", e.getMessage());
+            }catch(BadPaddingException e){
+                logger.err("Error occurred while encrypting message", e.getMessage());
+            }
+            return newMessage;
+        }
+
+        private void sendSessionKey(String userPublicKey){
+            try{
+                byte[] userPublicKeyBytes = Base64.getDecoder().decode(userPublicKey);
+                X509EncodedKeySpec spec = new X509EncodedKeySpec(userPublicKeyBytes);
+                PublicKey publicKey = KeyFactory.getInstance("RSA").generatePublic(spec);
+                encryptRSA.init(Cipher.ENCRYPT_MODE, publicKey);
+                byte[] encryptedSessionKey = encryptRSA.doFinal(Base64.getDecoder().decode(Base64.getEncoder().encodeToString(sessionKey.getEncoded())));
+                out.println(Base64.getEncoder().encodeToString(encryptedSessionKey));
+            }catch (Exception e){
+                logger.err("Error occurred while sending session key: ", e.getMessage());
+            }
+        }
+
+        private void sendMessage(String message){
+            String encryptedMessage = encryptMessage(message);
+            out.println(encryptedMessage);
+        }
 
         private void sendUpdateActiveUsers(){
-            String activeClientUpdate = "ACTIVE: " + String.join(",", activeUsersName);
-            sendBroadcast(activeClientUpdate, nickname);
+            String activeClientUpdate = "ACTIVE: " + String.join(" ", activeUsersName);
+            sendMessage(activeClientUpdate);
         }
 
         private String receiveUserPicture(){
@@ -177,18 +250,23 @@ public class ChatServer implements Runnable{
         }
 
         private boolean login(String password){
-            if(dataBase.doesUsernameExist(nickname)) {
-                if(dataBase.getUserPassword(nickname).equals(password)){
-                    logger.echo("User: " + nickname + " successfully logged in");
-                    sendMessage("OK: 200");
-                    activeUsersName.add(nickname);
-                    return true;
-                } else{
-                    logger.err("Error occurred", "Wrong password by user: " + nickname);
-                    sendMessage("Error: 401");
+            if(!activeUsersName.contains(nickname)) {
+                if (dataBase.doesUsernameExist(nickname)) {
+                    if (dataBase.getUserPassword(nickname).equals(password)) {
+                        logger.echo("User: " + nickname + " successfully logged in");
+                        sendMessage("OK: 200");
+                        activeUsersName.add(nickname);
+                        return true;
+                    } else {
+                        logger.err("Error occurred", "Wrong password by user: " + nickname);
+                        sendMessage("Error: 401");
+                    }
+                } else {
+                    sendMessage("Error: 404");
                 }
-            }else{
-                sendMessage("Error: 404");
+            } else {
+                logger.err("Error occurred", "User is logged in: " + nickname);
+                sendMessage("Error: 405");
             }
             return false;
         }
@@ -225,10 +303,9 @@ public class ChatServer implements Runnable{
             try {
                 activeUsersName.remove(nickname);
                 logger.echo("User: " + nickname + " logged out");
-                sendBroadcast(nickname + " left chat", nickname);
-                sendUpdateActiveUsers();
-
+                //sendUpdateActiveUsers();
                 activeUserHandlers.remove(this);
+                sendBroadcast("QUIT", nickname, nickname);
 
                 in.close();
                 out.close();
@@ -242,6 +319,22 @@ public class ChatServer implements Runnable{
         }
     }
 
+    private void sendBroadcast(String prefix, String nickname, String message){
+        for(ConnectionHandler handler: activeUserHandlers){
+            if(!handler.nickname.equals(nickname)){
+                handler.sendMessage(prefix + " " + message);
+            }
+        }
+    }
+
+    private void sendToOtherUser(String sender, String reciver, String message){
+        for(ConnectionHandler handler: activeUserHandlers){
+            if(handler.nickname.equals(reciver)){
+                handler.sendMessage(sender + " " + message);
+                break;
+            }
+        }
+    }
 
     public static void main(String[] args) {
         try {

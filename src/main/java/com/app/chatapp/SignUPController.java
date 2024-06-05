@@ -28,13 +28,13 @@ import java.util.ResourceBundle;
 
 public class SignUPController {
 
-    private String username;
+    private String login;
     private String password;
     private File profilePicture;
     @FXML
     private Button signUpButton;
     @FXML
-    private TextField usernameField;
+    private TextField loginField;
     @FXML
     private PasswordField passwordField;
     @FXML
@@ -42,42 +42,36 @@ public class SignUPController {
 
     @FXML
     public void switchToSignIn(MouseEvent event) throws IOException {
-        Parent root;
-        root = FXMLLoader.load(Objects.requireNonNull(App.class.getResource("sign-in-form.fxml")));
-
-        Stage stage = (Stage)((Node)event.getSource()).getScene().getWindow();
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        ControllerUtils.changeScene(((Node)event.getSource()), "sign-in-form.fxml");
     }
 
     @FXML
-    public void signupButton(MouseEvent mouseEvent) throws IOException {
-        Stage dialogStage = new Stage();
-        Window mainWindow = ((Node) mouseEvent.getSource()).getScene().getWindow();
+    public void signupButton(MouseEvent mouseEvent) throws Exception {
+        if(!loginField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
+            login = loginField.getText();
+            password = passwordField.getText();
 
-        dialogStage.initModality(Modality.APPLICATION_MODAL);
-        dialogStage.setWidth(300);
-        dialogStage.setHeight(100);
-        dialogStage.setX(mainWindow.getX() + (mainWindow.getWidth() - dialogStage.getWidth()) / 2);
-        dialogStage.setY(mainWindow.getY() + (mainWindow.getHeight() - dialogStage.getHeight()) / 2);
+            if(!password.equals(confirmPasswordField.getText())) {
+                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "PASSWORDS MISMATCH", "OK");
+            } else {
+                TransportController transportController = TransportController.getInstance();
+                transportController.setLogin(login);
+                transportController.setPassword(password);
 
-        Button okButton = new Button("OK");
-        okButton.setOnAction(event -> dialogStage.close());
+                if (transportController.signUp()) {
+                    App.executorService.submit(transportController);
+                    ControllerUtils.changeScene(signUpButton, "chatScene.fxml");
+                } else {
+                    ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY EXISTS", "OK");
+                }
+            }
+        }
 
-        if (!usernameField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
+     /*   if (!usernameField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
             username = usernameField.getText();
             password = passwordField.getText();
             if(!password.equals(confirmPasswordField.getText())) {
-
-                VBox vbox = new VBox(new Text("PASSWORDS MISMATCH"), okButton);
-                vbox.setAlignment(Pos.BOTTOM_CENTER);
-                vbox.setPadding(new Insets(15));
-
-                dialogStage.setScene(new Scene(vbox));
-
-                dialogStage.show();
-
+                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "PASSWORDS MISMATCH", "OK");
             } else {
                 String data = username + " " + password;
                 if (profilePicture != null) {
@@ -92,18 +86,12 @@ public class SignUPController {
                 System.out.println(response);
 
                 if (response.equals("OK: 201")) {
-                    App.changeScene(signUpButton, "chatScene.fxml");
+                    ControllerUtils.changeScene(signUpButton, "chatScene.fxml");
                 } else if (response.equals("Error: 404")) {
-                    VBox vbox = new VBox(new Text("USER ALREADY EXISTS"), okButton);
-                    vbox.setAlignment(Pos.BOTTOM_CENTER);
-                    vbox.setPadding(new Insets(15));
-
-                    dialogStage.setScene(new Scene(vbox));
-
-                    dialogStage.show();
+                    ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY EXISTS", "OK");
                 }
             }
-        }
+        }*/
     }
 
     public void fileSelection(MouseEvent mouseEvent) {

@@ -13,7 +13,6 @@ import java.util.Objects;
 
 public class SettingsSceneController {
 
-
     @FXML
     public void goBack(MouseEvent event) throws IOException {
         Parent root = FXMLLoader.load(Objects.requireNonNull(App.class.getResource("chatScene.fxml")));
