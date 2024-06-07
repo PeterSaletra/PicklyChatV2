@@ -48,6 +48,10 @@ public class TransportController implements Runnable {
         return isConnected;
     }
 
+    public String getLogin(){
+        return login;
+    }
+
     public static void sendToServer(String data){
         try {
             System.out.println(data);
@@ -91,11 +95,6 @@ public class TransportController implements Runnable {
             System.out.println("Lost connection to a server, couldn't receive data.");
         }
         return null;
-    }
-
-
-    public String getLogin(){
-        return login;
     }
 
     public Boolean signUp() throws Exception {
@@ -161,12 +160,6 @@ public class TransportController implements Runnable {
                     Platform.runLater(() -> {
                         users.add(newUser[1]);
                     });
-
-                   /* ArrayList<Label> userMessages = userMessagesList.getOrDefault("root", new ArrayList<>());
-                    Label label = new Label("Hello");
-                    userMessages.add(label);
-                    userMessagesList.put("root", userMessages);*/
-
                 } else if (message.startsWith("QUIT")){
                     String[] leavingUser = message.split(" ");
                     Platform.runLater(() -> {

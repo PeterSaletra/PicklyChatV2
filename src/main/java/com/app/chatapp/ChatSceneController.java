@@ -14,15 +14,20 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -93,7 +98,7 @@ public class ChatSceneController implements Initializable {
                 String sender = change.getKey();
                 ChatMessage message = change.getValueAdded();
                 message.getMessage().getStyleClass().add("messageBoxSender");
-                System.out.println("DUPSKO: " + message.getMessage());
+
                 ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(sender, new ArrayList<>());
                 userMessages.add(message);
                 userMessagesMap.put(sender, userMessages);
@@ -142,6 +147,7 @@ public class ChatSceneController implements Initializable {
     }
 
 
+
     public void sendMessage() {
         String message = messageBox.getText();
         if (message.isEmpty() || currentUser == null) {
@@ -178,14 +184,51 @@ public class ChatSceneController implements Initializable {
         TransportController.sendToServer(transportController.getLogin() + " " + currentUser + " " + message);
 
 
-
-
         messageContainer.setContent(messageVBox);
         messageContainer.vvalueProperty().bind(messageVBox.heightProperty());
 
         messageBox.clear();
     }
 
+    public void displayEmoji(MouseEvent mouseEvent) {
+        Stage popupStage = new Stage();
+        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.setTitle("Emoji Popup");
+
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        gridPane.setAlignment(Pos.CENTER);
+
+        int[] emojiCodes = {
+                0x1F600, 0x1F601, 0x1F602, 0x1F603, 0x1F604, 0x1F605, 0x1F606, 0x1F607,
+                0x1F608, 0x1F609, 0x1F60A, 0x1F60B, 0x1F60C, 0x1F60D, 0x1F60E, 0x1F60F,
+                0x1F610, 0x1F611, 0x1F612, 0x1F613, 0x1F614, 0x1F615, 0x1F616, 0x1F617,
+                0x1F618, 0x1F619, 0x1F61A, 0x1F61B, 0x1F61C, 0x1F61D
+        };
+
+        for (int i = 0; i < emojiCodes.length; i++) {
+            String emoji = new String(Character.toChars(emojiCodes[i]));
+            Text emojiLabel = new Text(emoji);
+            emojiLabel.setStyle("-fx-font-size: 40px;");
+            addClickListener(emojiLabel);
+
+            int col = i % 10;
+            int row = i / 10;
+
+            gridPane.add(emojiLabel, col, row);
+        }
+
+        Scene scene = new Scene(gridPane, 500, 300);
+        popupStage.setScene(scene);
+        popupStage.showAndWait();
+    }
+
+    private void addClickListener(Text label) {
+        label.setOnMouseClicked(event -> {
+            messageBox.setText(messageBox.getText() + " " + label.getText());
+        });
+    }
 
     public static class ChatMessage {
         private Label message;

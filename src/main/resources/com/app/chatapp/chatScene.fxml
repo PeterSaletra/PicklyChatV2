@@ -8,6 +8,7 @@
 
 <?import javafx.collections.FXCollections?>
 <?import java.lang.String?>
+
 <StackPane fx:id="screen" styleClass="main-container" stylesheets="@stylesheets\chatScene\chatScene.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.chatapp.ChatSceneController">
 
     <BorderPane prefHeight="600" prefWidth="800" styleClass="chatScene">
@@ -44,7 +45,8 @@
         </right>
         <bottom>
             <HBox>
-                <TextField fx:id="messageBox" minHeight="80" minWidth="500"> </TextField>
+                <TextField fx:id="messageBox" minHeight="80" minWidth="430"> </TextField>
+                <Button fx:id="emojiButton" minHeight="80" minWidth="70" styleClass ="emojiButton" onMouseClicked="#displayEmoji"> 😎 </Button>
                 <Button fx:id="sendMessageButton" minHeight="80" minWidth="100" styleClass="sendButton" onMouseClicked="#sendMessage"> SEND </Button>
                 <Circle fx:id="userImageCircle" radius="40" styleClass="userImage">
                     <HBox.margin>
