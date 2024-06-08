@@ -4,9 +4,11 @@ import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javafx.scene.image.Image;
@@ -31,7 +33,9 @@ public class App extends Application {
        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
-                TransportController.sendToServer("QUIT");
+                if(TransportController.getInstance().getIsConnected()) {
+                    TransportController.sendToServer("QUIT");
+                }
                 stage.close();
                 System.exit(1);
             }

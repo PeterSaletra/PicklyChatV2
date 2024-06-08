@@ -9,9 +9,11 @@ module com.app.chatapp {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
+    requires com.azure.identity.extensions;
+    requires com.microsoft.sqlserver.jdbc;
    //requires javax.websocket.api;
     requires java.sql;
-    requires json.simple;
+
 
     opens com.app.chatapp to javafx.fxml;
     exports com.app.chatapp;

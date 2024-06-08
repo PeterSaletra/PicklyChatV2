@@ -14,6 +14,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -54,7 +55,17 @@ public class SignINController {
 
             if(transportController.singIn() == 1) {
                 App.executorService.submit(transportController);
-                ControllerUtils.changeScene(signInButton, "chatScene.fxml");
+                //ControllerUtils.changeScene(signInButton, "chatScene.fxml");
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("chatScene.fxml"));
+                Parent root = loader.load();
+
+                ChatSceneController controller = loader.getController();
+                controller.displayUsername(login);
+
+                Stage stage = (Stage) ((Node)mouseEvent.getSource()).getScene().getWindow();
+                stage.setScene(new Scene(root));
+                stage.show();
+
             } else if (transportController.singIn() == 0) {
                 ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY LOGGED IN", "OK");
             } else {

@@ -6,8 +6,6 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<?import javafx.collections.FXCollections?>
-<?import java.lang.String?>
 <StackPane fx:id="screen" styleClass="main-container" stylesheets="@stylesheets\chatScene\chatScene.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.app.chatapp.ChatSceneController">
 
     <BorderPane prefHeight="600" prefWidth="800" styleClass="chatScene">
@@ -15,13 +13,13 @@
             <HBox prefHeight="80" styleClass="topBar">
                 <Label alignment="CENTER" prefHeight="80" prefWidth="729.0">PICKLY</Label>
                 <Region HBox.hgrow="ALWAYS" />
-                <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true" styleClass="image" onMouseClicked="#enterSettings">
+                <ImageView fitHeight="30" fitWidth="30" onMouseClicked="#enterSettings" pickOnBounds="true" preserveRatio="true" styleClass="image">
                     <HBox.margin>
                         <Insets right="5.0" top="15.0" />
                     </HBox.margin>
                     <Image url="@pictures/settings_button.png" />
                 </ImageView>
-                <ImageView fitHeight="30" fitWidth="30" pickOnBounds="true" preserveRatio="true" styleClass="image" onMouseClicked="#closeApplication">
+                <ImageView fitHeight="30" fitWidth="30" onMouseClicked="#closeApplication" pickOnBounds="true" preserveRatio="true" styleClass="image">
                     <HBox.margin>
                         <Insets right="5.0" top="15.0" />
                     </HBox.margin>
@@ -31,8 +29,8 @@
         </top>
         <center>
             <HBox styleClass="chatWindow">
-                <ScrollPane  fx:id="messageContainer" prefHeight="440.0" prefWidth="600">
-                    <VBox fx:id="messageVBox"> </VBox>
+                <ScrollPane fx:id="messageContainer" prefHeight="440.0" prefWidth="600">
+                    <VBox fx:id="messageVBox" maxWidth="600" styleClass="messageVBox"> </VBox>
                 </ScrollPane>
             </HBox>
         </center>
@@ -44,25 +42,15 @@
         </right>
         <bottom>
             <HBox>
-                <TextField fx:id="messageBox" minHeight="80" minWidth="500"> </TextField>
-                <Button fx:id="sendMessageButton" minHeight="80" minWidth="100" styleClass="sendButton" onMouseClicked="#sendMessage"> SEND </Button>
+                <TextField fx:id="messageBox" minHeight="80" minWidth="430"> </TextField>
+                <Button fx:id="emojiButton" minHeight="80" minWidth="70" onMouseClicked="#displayEmoji" styleClass="emojiButton"> 😎 </Button>
+                <Button fx:id="sendMessageButton" minHeight="80" minWidth="100" onMouseClicked="#sendMessage" styleClass="sendButton"> SEND </Button>
                 <Circle fx:id="userImageCircle" radius="40" styleClass="userImage">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </Circle>
-                <ChoiceBox fx:id="choiceBox" prefHeight="51.0" prefWidth="103.0" value="ON">
-                    <HBox.margin>
-                        <Insets right="5.0" top="15.0" />
-                    </HBox.margin>
-                    <items>
-                        <FXCollections fx:factory="observableArrayList">
-                            <String fx:value="ON" />
-                            <String fx:value="OFF" />
-                            <String fx:value="BRB" />
-                        </FXCollections>
-                    </items>
-                </ChoiceBox>
+                <Label fx:id="usernameLabel" alignment="BASELINE_CENTER" prefHeight="78.0" prefWidth="95.0"> </Label>
             </HBox>
         </bottom>
     </BorderPane>

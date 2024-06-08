@@ -5,59 +5,35 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 
-import javax.crypto.*;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TransportController implements Runnable {
     private static TransportController instance;
 
     private String login;
     private String password;
-    private Boolean isRegister = false;
+    private Boolean isConnected = false;
 
     private static Socket socket = null;
     private static BufferedReader in = null;
     private static BufferedWriter out = null;
 
-    private Cipher encryptRSA;
-    private Cipher decryptRSA;
-    private static Cipher encryptAES;
-    private static Cipher decryptAES;
-    private SecretKey sessionKey = null;
-    private PublicKey publicKey = null;
-    private PrivateKey privateKey = null;
-
     public ObservableList<String> users = FXCollections.observableArrayList();
 
     public ObservableMap<String, ChatSceneController.ChatMessage> receivedMessages = FXCollections.observableHashMap();
 
-    private TransportController(){
-        generateRSA();
-        try{
-            this.encryptRSA = Cipher.getInstance("RSA");
-            this.decryptRSA = Cipher.getInstance("RSA");
-            this.encryptRSA.init(Cipher.ENCRYPT_MODE, publicKey);
-            this.decryptRSA.init(Cipher.DECRYPT_MODE, privateKey);
-            this.decryptAES = Cipher.getInstance("AES");
-            this.encryptAES = Cipher.getInstance("AES");
-        }catch (Exception e){
-            System.err.println(e.getMessage());
-        }
-    };
-
-
+    private TransportController(){};
 
     public static TransportController getInstance() {
         if (instance == null) {
             instance = new TransportController();
         }
-
         return instance;
     }
 
@@ -69,14 +45,18 @@ public class TransportController implements Runnable {
         this.password = password;
     }
 
-    public void setIsRegister(Boolean isRegister) {
-        this.isRegister = isRegister;
+    public Boolean getIsConnected() {
+        return isConnected;
+    }
+
+    public String getLogin(){
+        return login;
     }
 
     public static void sendToServer(String data){
         try {
             System.out.println(data);
-            out.write(encryptMessage(data));
+            out.write(data);
             out.newLine();
             out.flush();
         } catch (IOException e) {
@@ -85,7 +65,7 @@ public class TransportController implements Runnable {
     }
 
     public static void sendToServer(File data){
-        /*try{
+        try{
             sendToServer(String.valueOf(data.length()));
 
             FileInputStream fis = new FileInputStream(data);
@@ -102,7 +82,7 @@ public class TransportController implements Runnable {
 
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't send File.");
-        }*/
+        }
         return;
     }
 
@@ -110,8 +90,7 @@ public class TransportController implements Runnable {
         try {
             String message = "";
             while((message = in.readLine()) != null){
-
-                return decryptMessage(message);
+                return message;
             }
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't receive data.");
@@ -119,81 +98,7 @@ public class TransportController implements Runnable {
         return null;
     }
 
-
-    public String getLogin(){
-        return login;
-    }
-
-    private void generateRSA(){
-        try{
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-            generator.initialize(2048);
-            KeyPair pair = generator.generateKeyPair();
-            privateKey = pair.getPrivate();
-            publicKey = pair.getPublic();
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private String decryptMessageRSA(String message){
-        String newMessage = "";
-        try{
-            byte[] messageInBytes = Base64.getDecoder().decode(message);
-            byte[] encryptedBytes = decryptRSA.doFinal(messageInBytes);
-            newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
-            System.err.println(e.getMessage());
-        }
-        return newMessage;
-    }
-
-    private String encryptMessageRSA(String message){
-        String newMessage = "";
-        try{
-            byte[] messageInBytes = Base64.getDecoder().decode(message);
-            byte[] encryptedBytes = encryptRSA.doFinal(messageInBytes);
-            newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
-            System.err.println(e.getMessage());
-        }
-
-        return newMessage;
-    }
-
-    private static String encryptMessage(String message){
-        String newMessage = "";
-        try{
-            byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8);
-            byte[] encryptedBytes = encryptAES.doFinal(messageInBytes);
-            newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
-            System.err.println(e.getMessage());
-        }
-        return newMessage;
-    }
-
-    private static String decryptMessage(String message){
-        String newMessage = "";
-        try{
-            byte[] messageInBytes = Base64.getDecoder().decode(message);
-            byte[] encryptedBytes = decryptAES.doFinal(messageInBytes);
-            newMessage = new String(encryptedBytes, StandardCharsets.UTF_8);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
-            System.err.println(e.getMessage());
-        }
-        return newMessage;
-    }
-
-    public Boolean signUp() throws Exception {
+    public Boolean signUp(File file, Boolean withFile) throws Exception {
         if (login == null || password == null) {
             return false;
         }
@@ -201,44 +106,26 @@ public class TransportController implements Runnable {
         socket = new Socket("127.0.0.1", 9999);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-        out.write(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
-        out.flush();
-        String sesKey = decryptMessageRSA(in.readLine());
-        generateSessionKey(sesKey);
-        initializeAES();
-
-
-
-        sendToServer("REG/N");
-        sendToServer(String.format("%s %s", login, password));
+        isConnected = true;
+        if(withFile) {
+            sendToServer("REG/F");
+            sendToServer(String.format("%s %s", login, password));
+            sendToServer(file);
+        }
+        else {
+            sendToServer("REG/N");
+            sendToServer(String.format("%s %s", login, password));
+        }
         String response = receiveFromServer();
 
         assert response != null;
         if (!response.equals("OK: 201")) {
             socket.close();
+            isConnected = false;
             return false;
         }
 
         return true;
-    }
-
-    private void generateSessionKey(String sesKey){
-        try{
-            byte[] keyBytes = Base64.getDecoder().decode(sesKey);
-            sessionKey = new SecretKeySpec(keyBytes, "AES");
-        }catch (Exception e){
-            System.err.println(e.getMessage());
-        }
-    }
-
-    private void initializeAES(){
-        try{
-            encryptAES.init(Cipher.ENCRYPT_MODE, sessionKey);
-            decryptAES.init(Cipher.DECRYPT_MODE, sessionKey);
-        }catch (Exception e){
-            System.err.println(e.getMessage());
-        }
     }
 
     public int singIn() throws Exception {
@@ -249,22 +136,17 @@ public class TransportController implements Runnable {
         socket = new Socket("127.0.0.1", 9999);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-        out.write(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
-        out.newLine();
-        out.flush();
-        String sesKey = decryptMessageRSA(in.readLine());
-        generateSessionKey(sesKey);
-        initializeAES();
+        isConnected = true;
 
         sendToServer("LOGIN");
         sendToServer(String.format("%s %s", login, password));
         String response = receiveFromServer();
-        System.out.println(response);
+
 
         assert response != null;
         if (!response.equals("OK: 200")) {
             socket.close();
+            isConnected = false;
             if(response.equals("Error: 405")){
                 return 0;
             } else{
@@ -280,18 +162,11 @@ public class TransportController implements Runnable {
         try {
             String message;
             while ((message = in.readLine()) != null) {
-                message = decryptMessage(message);
                 if(message.startsWith("USR")){
                     String[] newUser = message.split(" ");
                     Platform.runLater(() -> {
                         users.add(newUser[1]);
                     });
-
-                   /* ArrayList<Label> userMessages = userMessagesList.getOrDefault("root", new ArrayList<>());
-                    Label label = new Label("Hello");
-                    userMessages.add(label);
-                    userMessagesList.put("root", userMessages);*/
-
                 } else if (message.startsWith("QUIT")){
                     String[] leavingUser = message.split(" ");
                     Platform.runLater(() -> {

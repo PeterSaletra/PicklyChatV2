@@ -6,7 +6,6 @@ $XL:64;
 
 .chatScene {
   -fx-background-color: white;
-  -fx-font-family: Roboto;
   -fx-font-size: $M;
 }
 
@@ -24,8 +23,23 @@ $XL:64;
   -fx-padding: 8;
   -fx-wrap-text: true;
   -fx-max-width: 400;
-   -fx-fill-width: true;
-   -fx-fill-height: true;
+  -fx-fill-width: true;
+  -fx-fill-height: true;
   -fx-text-fill: black;
-  -fx-font-size: $S;
+  -fx-font-size: 19;
 }
+
+.messageBoxSender {
+  -fx-background-radius: 2em;
+  -fx-background-color: lighten(blue, $M);
+  -fx-padding: 8;
+  -fx-wrap-text: true;
+  -fx-max-width: 400;
+  -fx-fill-width: true;
+  -fx-fill-height: true;
+  -fx-text-fill: black;
+  -fx-alignment: top-right;
+  -fx-font-size: 19;
+}
+
+
