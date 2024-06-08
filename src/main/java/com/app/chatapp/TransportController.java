@@ -5,7 +5,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -59,7 +58,7 @@ public class TransportController implements Runnable {
         }catch (Exception e){
             System.err.println(e.getMessage());
         }
-    };
+    }
 
     public static TransportController getInstance() {
         if (instance == null) {
@@ -114,15 +113,13 @@ public class TransportController implements Runnable {
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't send File.");
         }
-        return;
     }
 
     private static String receiveFromServer(){
         try {
             String message = "";
-            while((message = in.readLine()) != null){
-                return decryptMessage(message);
-            }
+
+            while((message = in.readLine()) != null) return decryptMessage(message);
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't receive data.");
         }
@@ -147,28 +144,12 @@ public class TransportController implements Runnable {
             byte[] messageInBytes = Base64.getDecoder().decode(message);
             byte[] encryptedBytes = decryptRSA.doFinal(messageInBytes);
             newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
+        }catch (IllegalBlockSizeException | BadPaddingException e){
             System.err.println(e.getMessage());
         }
         return newMessage;
     }
 
-    private String encryptMessageRSA(String message){
-        String newMessage = "";
-        try{
-            byte[] messageInBytes = Base64.getDecoder().decode(message);
-            byte[] encryptedBytes = encryptRSA.doFinal(messageInBytes);
-            newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
-            System.err.println(e.getMessage());
-        }
-
-        return newMessage;
-    }
 
     private static String encryptMessage(String message){
         String newMessage = "";
@@ -176,9 +157,7 @@ public class TransportController implements Runnable {
             byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8);
             byte[] encryptedBytes = encryptAES.doFinal(messageInBytes);
             newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
+        }catch (IllegalBlockSizeException | BadPaddingException e){
             System.err.println(e.getMessage());
         }
         return newMessage;
@@ -190,51 +169,11 @@ public class TransportController implements Runnable {
             byte[] messageInBytes = Base64.getDecoder().decode(message);
             byte[] encryptedBytes = decryptAES.doFinal(messageInBytes);
             newMessage = new String(encryptedBytes, StandardCharsets.UTF_8);
-        }catch (IllegalBlockSizeException e){
-            System.err.println(e.getMessage());
-        }catch(BadPaddingException e){
+        }catch (IllegalBlockSizeException | BadPaddingException e){
             System.err.println(e.getMessage());
         }
         return newMessage;
     }
-
-    public Boolean signUp(File file, Boolean withFile) throws Exception {
-        if (login == null || password == null) {
-            return false;
-        }
-
-        socket = new Socket("127.0.0.1", 9999);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        isConnected = true;
-
-        out.write(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
-        out.flush();
-        String sesKey = decryptMessageRSA(in.readLine());
-        generateSessionKey(sesKey);
-        initializeAES();
-
-        if(withFile) {
-            sendToServer("REG/F");
-            sendToServer(String.format("%s %s", login, password));
-            sendToServer(file);
-        }
-        else {
-            sendToServer("REG/N");
-            sendToServer(String.format("%s %s", login, password));
-        }
-        String response = receiveFromServer();
-
-        assert response != null;
-        if (!response.equals("OK: 201")) {
-            socket.close();
-            isConnected = false;
-            return false;
-        }
-
-        return true;
-    }
-
 
     private void generateSessionKey(String sesKey){
         try{
@@ -253,6 +192,46 @@ public class TransportController implements Runnable {
             System.err.println(e.getMessage());
         }
     }
+
+    public Boolean signUp(File file, Boolean withFile) throws Exception {
+        if (login == null || password == null) {
+            return false;
+        }
+
+        socket = new Socket("127.0.0.1", 9999);
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        isConnected = true;
+
+        out.write(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
+        out.newLine();
+        out.flush();
+        String sesKey = decryptMessageRSA(in.readLine());
+        generateSessionKey(sesKey);
+        initializeAES();
+
+        if(withFile) {
+            sendToServer("REG/F");
+            sendToServer(String.format("%s %s", login, password));
+            sendToServer(file);
+        }
+        else {
+            sendToServer("REG/N");
+            sendToServer(String.format("%s %s", login, password));
+        }
+        System.out.println("dupa3");
+        String response = receiveFromServer();
+
+        assert response != null;
+        if (!response.equals("OK: 201")) {
+            socket.close();
+            isConnected = false;
+            return false;
+        }
+
+        return true;
+    }
+
 
     public int singIn() throws Exception {
         if (login == null || password == null) {

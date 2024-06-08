@@ -1,4 +1,0 @@
-[Server][2024-06-04][17:40:09.493] Server started
-[Server][2024-06-04][17:40:54.010] Recived public key
-[Server][2024-06-04][17:40:54.039] User: 1 connected to server
-[Server][2024-06-04][17:40:54.082] User: 1 successfully logged in

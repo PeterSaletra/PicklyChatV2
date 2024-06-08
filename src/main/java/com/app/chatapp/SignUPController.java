@@ -61,38 +61,20 @@ public class SignUPController {
                 if (profilePicture != null) isAvatarSet = true;
                 if (transportController.signUp(profilePicture, isAvatarSet)) {
                     App.executorService.submit(transportController);
-                    ControllerUtils.changeScene(signUpButton, "chatScene.fxml");
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("chatScene.fxml"));
+                    Parent root = loader.load();
+
+                    ChatSceneController controller = loader.getController();
+                    controller.displayUsername(login);
+
+                    Stage stage = (Stage) ((Node)mouseEvent.getSource()).getScene().getWindow();
+                    stage.setScene(new Scene(root));
+                    stage.show();
                 } else {
                     ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY EXISTS", "OK");
                 }
             }
         }
-
-     /*   if (!usernameField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
-            username = usernameField.getText();
-            password = passwordField.getText();
-            if(!password.equals(confirmPasswordField.getText())) {
-                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "PASSWORDS MISMATCH", "OK");
-            } else {
-                String data = username + " " + password;
-                if (profilePicture != null) {
-                    App.sendToServer("REG/F");
-                    App.sendToServer(data);
-                    App.sendToServer(profilePicture);
-                } else {
-                    App.sendToServer("REG/N");
-                    App.sendToServer(data);
-                }
-                String response = App.receiveFromServer();
-                System.out.println(response);
-
-                if (response.equals("OK: 201")) {
-                    ControllerUtils.changeScene(signUpButton, "chatScene.fxml");
-                } else if (response.equals("Error: 404")) {
-                    ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY EXISTS", "OK");
-                }
-            }
-        }*/
     }
 
     public void fileSelection(MouseEvent mouseEvent) {

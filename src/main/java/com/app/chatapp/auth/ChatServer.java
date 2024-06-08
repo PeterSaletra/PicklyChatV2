@@ -17,10 +17,8 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class ChatServer implements Runnable {
-
-    private ArrayList users;
-    private ArrayList<ConnectionHandler> activeUserHandlers;
-    private ArrayList<String> activeUsersName;
+    private final ArrayList<ConnectionHandler> activeUserHandlers;
+    private final ArrayList<String> activeUsersName;
     private ServerSocket serverSocket;
     private ExecutorService pool;
     private boolean done;
@@ -45,7 +43,6 @@ public class ChatServer implements Runnable {
     @Override
     public void run() {
         try {
-            System.out.println("okok");
             this.serverSocket = new ServerSocket(this.port);
             pool = Executors.newCachedThreadPool();
 
@@ -63,17 +60,56 @@ public class ChatServer implements Runnable {
                 try {
                     Socket client = serverSocket.accept();
                     ConnectionHandler handler = new ConnectionHandler(client);
+
                     activeUserHandlers.add(handler);
-                    pool.submit(handler);
+                    FutureTask<Integer> future = new FutureTask<>(handler){
+                        @Override
+                        protected void done() {
+                            try {
+                                int i = get();
+
+                                if(i==0){
+                                    logger.echo("Handler stopped working successfully");
+                                }else if(i == -1){
+                                    logger.err("Handler had some problem", "Login or register flag was null");
+                                }else if(i == -2){
+                                    logger.err("Handler had some problem", "User data was null");
+                                }else if(i == -3){
+                                    logger.err("Handler had some problem", "User data was to long or wrong");
+                                }else if(i == -4){
+                                    logger.err("Handler had some problem", "Unknown login or register flag");
+                                }else if(i == 5){
+                                    logger.err("Handler had some problem", "Message was null");
+                                }else if(i == -6){
+                                    logger.err("Handler had some problem", "Error with output/input stream");
+                                }
+                            } catch (InterruptedException | ExecutionException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    };
+                    pool.submit(future);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.err("Error while running server", e.getMessage());
+                    done = false;
                 }
             }
         } catch (IOException e) {
             logger.err("Unknown error occurred: ", e.getMessage());
+            try {
+                serverSocket.close();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            dataBase.shutdown();
         } catch (NoSuchAlgorithmException e) {
             logger.err("Error with generating key: ", e.getMessage());
-
+            try {
+                serverSocket.close();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            dataBase.shutdown();
         }
     }
 
@@ -96,11 +132,7 @@ public class ChatServer implements Runnable {
 
                     encryptAES.init(Cipher.ENCRYPT_MODE, sessionKey);
                     decryptAES.init(Cipher.DECRYPT_MODE, sessionKey);
-                } catch (NoSuchPaddingException e) {
-                    logger.err("Error occured: ", e.getMessage());
-                } catch (NoSuchAlgorithmException e) {
-                    logger.err("Error occured: ", e.getMessage());
-                } catch (InvalidKeyException e) {
+                } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
                     logger.err("Error occured: ", e.getMessage());
                 }
             }
@@ -116,11 +148,27 @@ public class ChatServer implements Runnable {
                     sendSessionKey(userPublicKey);
 
                     while (!logged) {
-                        String loginOrRegister = decryptMessage(in.readLine());
-                        String userData = decryptMessage(in.readLine().strip());
+                        String loginOrRegisterEnc = in.readLine();
+                        if (loginOrRegisterEnc == null) {
+                            sendMessage("Error: 400 Null or empty login or register");
+                            shutdown();
+                            return -1;
+                        }
+
+                        String userDataEnc = in.readLine();
+                        if (userDataEnc == null) {
+                            sendMessage("Error: 400 Null or empty user data");
+                            shutdown();
+                            return -2;
+                        }
+
+                        String loginOrRegister = decryptMessage(loginOrRegisterEnc);
+                        String userData = decryptMessage(userDataEnc.strip());
                         String[] userDataArray = userData.split(" ");
                         if (userDataArray.length < 2) {
                             sendMessage("Error: 400");
+                            shutdown();
+                            return -3;
                         }
                         nickname = userDataArray[0];
                         logger.echo("User: " + nickname + " connected to server");
@@ -141,10 +189,9 @@ public class ChatServer implements Runnable {
                             default:
                                 logger.err("User: " + nickname + " sent unknown command", "Error: 404 Unknown Command");
                                 sendMessage("Error: 404 Unknown Command");
-                                return -1;
+                                shutdown();
+                                return -4;
                         }
-
-
                     }
 
                     sendUpdateActiveUsers();
@@ -157,20 +204,21 @@ public class ChatServer implements Runnable {
                             shutdown();
                             return 0;
                         } else {
-                            List<String> splitedMessage = new ArrayList(Arrays.asList(message.split(" ")));
+                            List<String> splitedMessage = new ArrayList<>(Arrays.asList(message.split(" ")));
                             String sender = splitedMessage.getFirst();
-                            splitedMessage.remove(0);
+                            splitedMessage.removeFirst();
                             String reciver = splitedMessage.getFirst();
-                            splitedMessage.remove(0);
+                            splitedMessage.removeFirst();
                             sendToOtherUser(sender, reciver, String.join(" ", splitedMessage));
                         }
                     }
-
+                    shutdown();
+                    return -5;
                 } catch (Exception e) {
-                    e.printStackTrace();
-
+                    logger.err("Error occured: ", e.getMessage());
+                    return -6;
                 }
-                return null;
+
             }
 
             private String encryptMessage(String message) {
@@ -179,10 +227,8 @@ public class ChatServer implements Runnable {
                     byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8);
                     byte[] encryptedBytes = encryptAES.doFinal(messageInBytes);
                     newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
-                } catch (IllegalBlockSizeException e) {
+                } catch (IllegalBlockSizeException | BadPaddingException e) {
                     logger.err("Error occurred while encrypting message", e.getMessage());
-                } catch (BadPaddingException ed) {
-                    logger.err("Error occurred while encrypting message", ed.getMessage());
                 }
                 return newMessage;
             }
@@ -193,9 +239,7 @@ public class ChatServer implements Runnable {
                     byte[] messageInBytes = Base64.getDecoder().decode(message);
                     byte[] encryptedBytes = decryptAES.doFinal(messageInBytes);
                     newMessage = new String(encryptedBytes, StandardCharsets.UTF_8);
-                } catch (IllegalBlockSizeException e) {
-                    logger.err("Error occurred while encrypting message", e.getMessage());
-                } catch (BadPaddingException e) {
+                } catch (IllegalBlockSizeException | BadPaddingException e) {
                     logger.err("Error occurred while encrypting message", e.getMessage());
                 }
                 return newMessage;
@@ -222,7 +266,6 @@ public class ChatServer implements Runnable {
             private void sendUpdateActiveUsers() {
                 String activeClientUpdate = "ACTIVE: " + String.join(" ", activeUsersName);
                 sendMessage(activeClientUpdate);
-                //sendBroadcast(activeClientUpdate, nickname);
             }
 
             private String receiveUserPicture() {
@@ -309,7 +352,7 @@ public class ChatServer implements Runnable {
                 try {
                     activeUsersName.remove(nickname);
                     logger.echo("User: " + nickname + " logged out");
-                    //sendUpdateActiveUsers();
+
                     activeUserHandlers.remove(this);
                     sendBroadcast("QUIT", nickname, nickname);
 

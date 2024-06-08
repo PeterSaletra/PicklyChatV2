@@ -189,7 +189,7 @@ public class ChatSceneController implements Initializable {
 
     public void displayEmoji(MouseEvent mouseEvent) {
         Stage popupStage = new Stage();
-        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.initModality(Modality.WINDOW_MODAL);
         popupStage.setTitle("Emoji Popup");
 
         GridPane gridPane = new GridPane();

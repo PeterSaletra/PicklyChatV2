@@ -53,9 +53,10 @@ public class SignINController {
             transportController.setLogin(login);
             transportController.setPassword(password);
 
-            if(transportController.singIn() == 1) {
+            int bool = transportController.singIn();
+
+            if(bool == 1) {
                 App.executorService.submit(transportController);
-                //ControllerUtils.changeScene(signInButton, "chatScene.fxml");
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("chatScene.fxml"));
                 Parent root = loader.load();
 
@@ -66,10 +67,10 @@ public class SignINController {
                 stage.setScene(new Scene(root));
                 stage.show();
 
-            } else if (transportController.singIn() == 0) {
+            } else if (bool == 0) {
                 ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "USER ALREADY LOGGED IN", "OK");
             } else {
-                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "WRONG PASSWORD", "OK");
+                ControllerUtils.createErrorPopUp(((Node) mouseEvent.getSource()), "WRONG PASSWORD/WRONG USERNAME", "OK");
             }
 
         }

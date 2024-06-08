@@ -7,20 +7,16 @@ import java.sql.*;
 import java.util.Properties;
 
 public class DataBase {
-    private final String url = "jdbc:sqlserver://sigmastic.database.windows.net:1433;database=picklychat;user=sbm2115@sigmastic;password=Bedoes2115;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;";
+    private String url = "jdbc:sqlserver://sigmastic.database.windows.net:1433;database=picklychat;";
     private String login;
     private String password;
-    private final String driver = "com.mysql.cj.jdbc.Driver";
-    private Connection conn;
+    private final Connection conn;
     private final Logger logger;
-    private Statement statement;
+
     public DataBase() throws Exception {
-        //loadENV();
-       // Class.forName(driver);
-        conn = DriverManager.getConnection(url);
-        statement = conn.createStatement();
-        //createDatabase();
         this.logger = new Logger("Database");
+        loadENV();
+        conn = DriverManager.getConnection(url);
         logger.echo("Successfully connected");
     }
 
@@ -30,18 +26,12 @@ public class DataBase {
         try (var inputStream = Files.newInputStream(envFile)) {
             props.load(inputStream);
         }catch (IOException e){
-            e.printStackTrace();
+            logger.err("Error occured while loading .env", e.getMessage());
         }
         this.login = props.get("LOGIN").toString();
         this.password = props.get("PASSWORD").toString();
-    }
 
-    private void createDatabase(){
-        try {
-            statement.executeUpdate("CREATE TABLE users (username varchar(50) PRIMARY KEY, password varchar(200), avatar_path varchar(100));");
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        url = url.concat("user=" + login + ";").concat("password=" + password + ";").concat("encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
     }
 
 
@@ -73,7 +63,7 @@ public class DataBase {
     }
 
     public boolean updateUserName(String oldName, String newName){
-        try(PreparedStatement stm = conn.prepareStatement("UPDATE users set username=? where username=?");){
+        try(PreparedStatement stm = conn.prepareStatement("UPDATE users set username=? where username=?")){
             stm.setString(1, newName);
             stm.setString(2, oldName);
             logger.echo("User " + newName + " successfully updated in database");
