@@ -7,10 +7,21 @@ import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 public class TransportController implements Runnable {
@@ -24,11 +35,31 @@ public class TransportController implements Runnable {
     private static BufferedReader in = null;
     private static BufferedWriter out = null;
 
+    private Cipher encryptRSA;
+    private Cipher decryptRSA;
+    private static Cipher encryptAES;
+    private static Cipher decryptAES;
+    private SecretKey sessionKey = null;
+    private PublicKey publicKey = null;
+    private PrivateKey privateKey = null;
+
     public ObservableList<String> users = FXCollections.observableArrayList();
 
     public ObservableMap<String, ChatSceneController.ChatMessage> receivedMessages = FXCollections.observableHashMap();
 
-    private TransportController(){};
+    private TransportController(){
+        generateRSA();
+        try{
+            this.encryptRSA = Cipher.getInstance("RSA");
+            this.decryptRSA = Cipher.getInstance("RSA");
+            this.encryptRSA.init(Cipher.ENCRYPT_MODE, publicKey);
+            this.decryptRSA.init(Cipher.DECRYPT_MODE, privateKey);
+            this.decryptAES = Cipher.getInstance("AES");
+            this.encryptAES = Cipher.getInstance("AES");
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+    };
 
     public static TransportController getInstance() {
         if (instance == null) {
@@ -56,7 +87,7 @@ public class TransportController implements Runnable {
     public static void sendToServer(String data){
         try {
             System.out.println(data);
-            out.write(data);
+            out.write(encryptMessage(data));
             out.newLine();
             out.flush();
         } catch (IOException e) {
@@ -90,12 +121,81 @@ public class TransportController implements Runnable {
         try {
             String message = "";
             while((message = in.readLine()) != null){
-                return message;
+                return decryptMessage(message);
             }
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't receive data.");
         }
         return null;
+    }
+
+    private void generateRSA(){
+        try{
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            KeyPair pair = generator.generateKeyPair();
+            privateKey = pair.getPrivate();
+            publicKey = pair.getPublic();
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private String decryptMessageRSA(String message){
+        String newMessage = "";
+        try{
+            byte[] messageInBytes = Base64.getDecoder().decode(message);
+            byte[] encryptedBytes = decryptRSA.doFinal(messageInBytes);
+            newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
+        }catch (IllegalBlockSizeException e){
+            System.err.println(e.getMessage());
+        }catch(BadPaddingException e){
+            System.err.println(e.getMessage());
+        }
+        return newMessage;
+    }
+
+    private String encryptMessageRSA(String message){
+        String newMessage = "";
+        try{
+            byte[] messageInBytes = Base64.getDecoder().decode(message);
+            byte[] encryptedBytes = encryptRSA.doFinal(messageInBytes);
+            newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
+        }catch (IllegalBlockSizeException e){
+            System.err.println(e.getMessage());
+        }catch(BadPaddingException e){
+            System.err.println(e.getMessage());
+        }
+
+        return newMessage;
+    }
+
+    private static String encryptMessage(String message){
+        String newMessage = "";
+        try{
+            byte[] messageInBytes = message.getBytes(StandardCharsets.UTF_8);
+            byte[] encryptedBytes = encryptAES.doFinal(messageInBytes);
+            newMessage = Base64.getEncoder().encodeToString(encryptedBytes);
+        }catch (IllegalBlockSizeException e){
+            System.err.println(e.getMessage());
+        }catch(BadPaddingException e){
+            System.err.println(e.getMessage());
+        }
+        return newMessage;
+    }
+
+    private static String decryptMessage(String message){
+        String newMessage = "";
+        try{
+            byte[] messageInBytes = Base64.getDecoder().decode(message);
+            byte[] encryptedBytes = decryptAES.doFinal(messageInBytes);
+            newMessage = new String(encryptedBytes, StandardCharsets.UTF_8);
+        }catch (IllegalBlockSizeException e){
+            System.err.println(e.getMessage());
+        }catch(BadPaddingException e){
+            System.err.println(e.getMessage());
+        }
+        return newMessage;
     }
 
     public Boolean signUp(File file, Boolean withFile) throws Exception {
@@ -107,6 +207,13 @@ public class TransportController implements Runnable {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         isConnected = true;
+
+        out.write(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
+        out.flush();
+        String sesKey = decryptMessageRSA(in.readLine());
+        generateSessionKey(sesKey);
+        initializeAES();
+
         if(withFile) {
             sendToServer("REG/F");
             sendToServer(String.format("%s %s", login, password));
@@ -128,6 +235,25 @@ public class TransportController implements Runnable {
         return true;
     }
 
+
+    private void generateSessionKey(String sesKey){
+        try{
+            byte[] keyBytes = Base64.getDecoder().decode(sesKey);
+            sessionKey = new SecretKeySpec(keyBytes, "AES");
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private void initializeAES(){
+        try{
+            encryptAES.init(Cipher.ENCRYPT_MODE, sessionKey);
+            decryptAES.init(Cipher.DECRYPT_MODE, sessionKey);
+        }catch (Exception e){
+            System.err.println(e.getMessage());
+        }
+    }
+
     public int singIn() throws Exception {
         if (login == null || password == null) {
             return -1;
@@ -137,6 +263,13 @@ public class TransportController implements Runnable {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         isConnected = true;
+
+        out.write(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
+        out.newLine();
+        out.flush();
+        String sesKey = decryptMessageRSA(in.readLine());
+        generateSessionKey(sesKey);
+        initializeAES();
 
         sendToServer("LOGIN");
         sendToServer(String.format("%s %s", login, password));
@@ -162,6 +295,7 @@ public class TransportController implements Runnable {
         try {
             String message;
             while ((message = in.readLine()) != null) {
+                message = decryptMessage(message);
                 if(message.startsWith("USR")){
                     String[] newUser = message.split(" ");
                     Platform.runLater(() -> {
