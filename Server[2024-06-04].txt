@@ -1,0 +1,7 @@
+[Server][2024-06-04][16:35:47.615] Server started
+[Server][2024-06-04][16:36:03.500] User: 1 successfully logged in
+[Server][2024-06-04][17:13:01.257] Error occurred: User is logged in: 1
+[Server][2024-06-04][17:13:01.274] Error occurred: User is logged in: 1
+[Server][2024-06-04][17:13:05.532] User: root successfully logged in
+[Server][2024-06-04][17:18:01.674] User: root logged out
+[Server][2024-06-04][17:18:03.197] User: 1 logged out

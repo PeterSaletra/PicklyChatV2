@@ -16,8 +16,8 @@ public class DataBase {
     private Statement statement;
     public DataBase() throws Exception {
         loadENV();
-        Class.forName(driver);
-        conn = DriverManager.getConnection(url, login, password);
+       // Class.forName(driver);
+        conn = DriverManager.getConnection(url);
         statement = conn.createStatement();
         //createDatabase();
         this.logger = new Logger("Database");

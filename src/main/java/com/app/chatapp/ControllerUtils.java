@@ -26,6 +26,7 @@ public final class ControllerUtils {
         stage.show();
     }
 
+
     public static void createErrorPopUp(Node currentNode, String text, String buttonText){
         Stage dialogStage = new Stage();
         Window mainWindow = currentNode.getScene().getWindow();

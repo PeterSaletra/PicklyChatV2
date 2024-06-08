@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 
 import java.io.*;
 import java.net.Socket;
@@ -64,7 +65,7 @@ public class TransportController implements Runnable {
     }
 
     public static void sendToServer(File data){
-        /*try{
+        try{
             sendToServer(String.valueOf(data.length()));
 
             FileInputStream fis = new FileInputStream(data);
@@ -81,7 +82,7 @@ public class TransportController implements Runnable {
 
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't send File.");
-        }*/
+        }
         return;
     }
 
@@ -97,7 +98,7 @@ public class TransportController implements Runnable {
         return null;
     }
 
-    public Boolean signUp() throws Exception {
+    public Boolean signUp(File file, Boolean withFile) throws Exception {
         if (login == null || password == null) {
             return false;
         }
@@ -106,9 +107,15 @@ public class TransportController implements Runnable {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         isConnected = true;
-
-        sendToServer("REG/N");
-        sendToServer(String.format("%s %s", login, password));
+        if(withFile) {
+            sendToServer("REG/F");
+            sendToServer(String.format("%s %s", login, password));
+            sendToServer(file);
+        }
+        else {
+            sendToServer("REG/N");
+            sendToServer(String.format("%s %s", login, password));
+        }
         String response = receiveFromServer();
 
         assert response != null;

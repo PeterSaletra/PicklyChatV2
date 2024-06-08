@@ -3,23 +3,18 @@ import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -27,12 +22,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.HashMap;
-import javafx.scene.layout.StackPane;
 
 public class ChatSceneController implements Initializable {
     @FXML
@@ -40,7 +33,7 @@ public class ChatSceneController implements Initializable {
     @FXML
     private ListView<String> usersListView;
     @FXML
-    private ChoiceBox<String> choiceBox;
+    private ListView<String> messagesListView;
     @FXML
     private Circle userImageCircle;
     @FXML
@@ -51,23 +44,23 @@ public class ChatSceneController implements Initializable {
     private ScrollPane messageContainer;
     @FXML
     private VBox messageVBox;
+    @FXML
+    private Label usernameLabel;
 
-    private String currentUser;
+    private String chosenUser;
 
     public HashMap<String, ArrayList<ChatSceneController.ChatMessage>> userMessagesMap = new HashMap<>();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        //  https://stackoverflow.com/questions/13246211/how-to-get-stage-from-controller-during-initialization
-        // https://stackoverflow.com/questions/20107039/how-to-create-custom-dialog-with-fxml-in-javafx
-    /*     Stage stage = (Stage) screen.getScene().getWindow();
-        stage.getScene();
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
+        //enter message sending
+        screen.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
             if(keyEvent.getCode() == KeyCode.ENTER) {
                 sendMessage();
             }
-        });*/
+        });
 
+        // loading in user avatar
         FileInputStream inputstream = null;
         try {
             inputstream = new FileInputStream("./src/main/resources/com/app/chatapp/pictures/avatar.jpg");
@@ -83,16 +76,18 @@ public class ChatSceneController implements Initializable {
         TransportController transportController = TransportController.getInstance();
         usersListView.setItems(transportController.users);
 
+        // filling in old user messages
         usersListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
-                currentUser = usersListView.getSelectionModel().getSelectedItem();
-                if (currentUser != null) {
+                chosenUser = usersListView.getSelectionModel().getSelectedItem();
+                if (chosenUser != null) {
                     updateChatWindow();
                 }
             }
         });
 
+        // adding messages from other users
         transportController.receivedMessages.addListener((MapChangeListener<String, ChatMessage>) change -> {
             if (change.wasAdded()) {
                 String sender = change.getKey();
@@ -103,7 +98,7 @@ public class ChatSceneController implements Initializable {
                 userMessages.add(message);
                 userMessagesMap.put(sender, userMessages);
 
-                if (Objects.equals(sender, currentUser)) {
+                if (Objects.equals(sender, chosenUser)) {
                     Platform.runLater(this::updateChatWindow);
                 }
             }
@@ -122,7 +117,7 @@ public class ChatSceneController implements Initializable {
 
         messageVBox.getChildren().clear();
 
-        ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
+        ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(chosenUser, new ArrayList<>());
         System.out.println(userMessages.isEmpty());
 
         for (ChatMessage msgLabel : userMessages) {
@@ -150,7 +145,7 @@ public class ChatSceneController implements Initializable {
 
     public void sendMessage() {
         String message = messageBox.getText();
-        if (message.isEmpty() || currentUser == null) {
+        if (message.isEmpty() || chosenUser == null) {
             return;
         }
 
@@ -159,10 +154,10 @@ public class ChatSceneController implements Initializable {
         label.getStyle();
 
         ChatMessage chatMessage = new ChatMessage(label, false);
-        ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(currentUser, new ArrayList<>());
+        ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(chosenUser, new ArrayList<>());
 
         userMessages.add(chatMessage);
-        userMessagesMap.put(currentUser, userMessages);
+        userMessagesMap.put(chosenUser, userMessages);
 
         messageVBox.getChildren().clear();
 
@@ -181,7 +176,7 @@ public class ChatSceneController implements Initializable {
         }
 
         TransportController transportController = TransportController.getInstance();
-        TransportController.sendToServer(transportController.getLogin() + " " + currentUser + " " + message);
+        TransportController.sendToServer(transportController.getLogin() + " " + chosenUser + " " + message);
 
 
         messageContainer.setContent(messageVBox);
@@ -211,7 +206,9 @@ public class ChatSceneController implements Initializable {
             String emoji = new String(Character.toChars(emojiCodes[i]));
             Text emojiLabel = new Text(emoji);
             emojiLabel.setStyle("-fx-font-size: 40px;");
-            addClickListener(emojiLabel);
+            emojiLabel.setOnMouseClicked(event -> {
+                messageBox.setText(messageBox.getText() + " " + emojiLabel.getText());
+            });
 
             int col = i % 10;
             int row = i / 10;
@@ -224,10 +221,8 @@ public class ChatSceneController implements Initializable {
         popupStage.showAndWait();
     }
 
-    private void addClickListener(Text label) {
-        label.setOnMouseClicked(event -> {
-            messageBox.setText(messageBox.getText() + " " + label.getText());
-        });
+    public void displayUsername(String username){
+        usernameLabel.setText(username);
     }
 
     public static class ChatMessage {

@@ -1,0 +1,11 @@
+[Database][2024-06-08][20:30:19.617] Successfully connected
+[Database][2024-06-08][20:30:24.649] User: root exists in database
+[Database][2024-06-08][20:31:44.242] User: root exists in database
+[Database][2024-06-08][20:34:00.616] User: root exists in database
+[Database][2024-06-08][20:34:24.886] User: root exists in database
+[Database][2024-06-08][20:35:38.333] User: root exists in database
+[Database][2024-06-08][20:35:48.228] User: root exists in database
+[Database][2024-06-08][20:36:01.654] User: root exists in database
+[Database][2024-06-08][20:37:52.742] User: root exists in database
+[Database][2024-06-08][20:38:14.431] User bardzodluginickname successfully added to database
+[Database][2024-06-08][20:38:24.348] User: bardzodluginickname exists in database

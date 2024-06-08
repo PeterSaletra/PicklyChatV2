@@ -47,6 +47,7 @@ public class SignUPController {
 
     @FXML
     public void signupButton(MouseEvent mouseEvent) throws Exception {
+        boolean isAvatarSet = false;
         if(!loginField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
             login = loginField.getText();
             password = passwordField.getText();
@@ -57,8 +58,8 @@ public class SignUPController {
                 TransportController transportController = TransportController.getInstance();
                 transportController.setLogin(login);
                 transportController.setPassword(password);
-
-                if (transportController.signUp()) {
+                if (profilePicture != null) isAvatarSet = true;
+                if (transportController.signUp(profilePicture, isAvatarSet)) {
                     App.executorService.submit(transportController);
                     ControllerUtils.changeScene(signUpButton, "chatScene.fxml");
                 } else {
