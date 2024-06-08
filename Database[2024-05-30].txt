@@ -1,0 +1,2 @@
+[Database][2024-05-30][17:27:10.526] Successfully connected
+[Database][2024-05-30][17:27:23.771] User 333 successfully added to database
