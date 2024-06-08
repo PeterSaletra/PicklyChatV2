@@ -1,1 +1,3 @@
-[Database][2024-06-08][20:56:20.529] Successfully connected
+[Database][2024-06-08][21:43:34.212] Successfully connected
+[Database][2024-06-08][21:44:12.391] User: 1 exists in database
+[Database][2024-06-08][21:44:30.335] User: root exists in database

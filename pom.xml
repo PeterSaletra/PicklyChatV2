@@ -20,13 +20,16 @@
             <artifactId>mssql-jdbc</artifactId>
             <version>12.6.2.jre11</version>
         </dependency>
-
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-identity-extensions</artifactId>
             <version>1.0.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>

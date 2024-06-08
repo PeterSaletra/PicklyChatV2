@@ -1,4 +1,5 @@
 package com.app.chatapp;
+import com.app.chatapp.filter.ProfanityFilter;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.event.EventHandler;
@@ -149,6 +150,7 @@ public class ChatSceneController implements Initializable {
             return;
         }
 
+        message = ProfanityFilter.filterMessage(message);
         Label label = new Label(message);
         label.getStyleClass().add("messageBox");
         label.getStyle();

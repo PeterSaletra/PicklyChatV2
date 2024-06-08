@@ -13,6 +13,7 @@ module com.app.chatapp {
     requires com.microsoft.sqlserver.jdbc;
    //requires javax.websocket.api;
     requires java.sql;
+    requires json.simple;
 
 
     opens com.app.chatapp to javafx.fxml;
