@@ -37,6 +37,7 @@ public class ChatServer implements Runnable{
     @Override
     public void run() {
         try {
+            System.out.println("okok");
             this.serverSocket = new ServerSocket(this.port);
             pool = Executors.newCachedThreadPool();
 
