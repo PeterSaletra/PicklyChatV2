@@ -9,27 +9,27 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class ProfanityFilter {
-    private final String apiKey = "[5092d3a8b925b1c6a90e6791fdf9f1bd]";
-    private final String url = "https://api.moderatecontent.com/text/?";
-    private String replace;
-    public ProfanityFilter(char replacementChar){
-        replace = String.valueOf(replacementChar);
+    private static final String apiKey = "[5092d3a8b925b1c6a90e6791fdf9f1bd]";
+    private static final String url = "https://api.moderatecontent.com/text/?";
+    private static char replace = '*';
+    private static ProfanityFilter filter = new ProfanityFilter();
+    private ProfanityFilter(){}
+
+    public static ProfanityFilter getInstance(){
+        return filter;
     }
-    String filterMessage(String message) {
+
+    public static String filterMessage(String message) {
         JSONObject reqJSON = new JSONObject();
         try{
             reqJSON.put("msg", URLEncoder.encode(message, "UTF-8"));
             reqJSON.put("key",  URLEncoder.encode(apiKey, "UTF-8"));
             reqJSON.put("replace", replace);
-
             String urlParameters = getUrlParams(reqJSON);
-            System.out.println("GIT: " + urlParameters);
-
             URI uri = new URI(url + urlParameters);
             HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("accept", "application/json");
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             StringBuilder response = new StringBuilder();
             String line;
@@ -38,7 +38,6 @@ public class ProfanityFilter {
             }
             JSONParser parser = new JSONParser();
             JSONObject resJSON = (JSONObject) parser.parse(response.toString());
-
             return resJSON.get("clean").toString();
 
         }catch (UnsupportedEncodingException err){
@@ -64,15 +63,4 @@ public class ProfanityFilter {
         }
         return urlParameters.toString();
     }
-
-    public static void main(String[] args){
-        ProfanityFilter filter = new ProfanityFilter('*');
-        System.out.println(filter.filterMessage("kurwy mać jebaniec suka pierdolony łąka"));
-    }
-
-
-
-
-
-
 }
