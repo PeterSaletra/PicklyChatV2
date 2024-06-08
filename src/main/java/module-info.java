@@ -11,6 +11,7 @@ module com.app.chatapp {
     requires eu.hansolo.tilesfx;
    //requires javax.websocket.api;
     requires java.sql;
+    requires json.simple;
 
     opens com.app.chatapp to javafx.fxml;
     exports com.app.chatapp;
