@@ -124,7 +124,6 @@ public class ChatSceneController implements Initializable {
         messageVBox.getChildren().clear();
 
         ArrayList<ChatMessage> userMessages = userMessagesMap.getOrDefault(chosenUser, new ArrayList<>());
-        System.out.println(userMessages.isEmpty());
 
         for (ChatMessage msgLabel : userMessages) {
             HBox costamHBox = new HBox(msgLabel.getMessage());
