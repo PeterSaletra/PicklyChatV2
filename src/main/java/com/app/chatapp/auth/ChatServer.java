@@ -144,7 +144,7 @@ public class ChatServer implements Runnable {
                     in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
                     String userPublicKey = in.readLine();
-                    logger.echo("Recived public key");
+                    logger.echo("Received public key");
                     sendSessionKey(userPublicKey);
 
                     while (!logged) {
@@ -303,12 +303,9 @@ public class ChatServer implements Runnable {
 
             private void sendFile() {
                 try {
+                    String filePath = dataBase.getUserFilePath(nickname);
 
-                    File file = new File(nickname + ".jpg");
-                    if (!file.exists()){
-                        file = new File("avatar.jpg");
-                    }
-
+                    File file = new File(filePath);
 
                     sendMessage(String.valueOf(file.length()));
                     if (!file.exists()) {

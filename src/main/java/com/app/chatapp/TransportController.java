@@ -89,7 +89,6 @@ public class TransportController implements Runnable {
 
     public static void sendToServer(String data) {
         try {
-            System.out.println(data);
             out.write(encryptMessage(data));
             out.newLine();
             out.flush();
@@ -129,7 +128,6 @@ public class TransportController implements Runnable {
             while (totalBytesRead < size) {
                 String encryptedPart = in.readLine();
                 if (encryptedPart == null) break;
-                System.out.println(totalBytesRead);
                 byte[] part = Base64.getDecoder().decode(encryptedPart);
                 byte[] decryptedPart = decryptAES.doFinal(part);
                 baos.write(decryptedPart);
@@ -140,17 +138,10 @@ public class TransportController implements Runnable {
             ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
             image = new Image(bais);
             userImage = image;
-            System.out.println(userImage);
 
- /*           Image finalImage = image;
-            Platform.runLater(() -> {
-                ImageView imageView = new ImageView(finalImage);
-                // You can now add the imageView to your UI
-            });*/
         } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
             System.err.println("Error occurred while receiving file: " + e.getMessage());
         }
-        System.out.println(userImage);
     }
     public Image getImage(){
         return userImage;
@@ -260,7 +251,6 @@ public class TransportController implements Runnable {
             sendToServer("REG/N");
             sendToServer(String.format("%s %s", login, password));
         }
-        System.out.println("dupa3");
         String response = receiveFromServer();
 
         assert response != null;

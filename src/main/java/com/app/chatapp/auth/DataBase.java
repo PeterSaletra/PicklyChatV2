@@ -36,7 +36,7 @@ public class DataBase {
 
 
     public boolean insertNewUser(String name, String password){
-        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?, 'avatar.jpg' )")){
+        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?, 'src/main/resources/com/app/chatapp/pictures/avatar.jpg' )")){
             stm.setString(1, name);
             stm.setString(2, password);
             stm.executeUpdate();
@@ -46,6 +46,19 @@ public class DataBase {
             logger.err("Error occurred while adding user: " + name + " to database", e.getMessage());
             return false;
         }
+    }
+
+    public String getUserFilePath(String username){
+        try(PreparedStatement stm = conn.prepareStatement("SELECT avatar_path FROM users WHERE username=?")){
+            stm.setString(1, username);
+            ResultSet res = stm.executeQuery();
+            if(res.next()){
+                return res.getString(1);
+            }
+        } catch (SQLException e){
+            logger.err("Error occurred while checking user filePath: " + username + " in database", e.getMessage());
+        }
+        return null;
     }
 
     public boolean insertNewUser(String name, String password, String filePath){

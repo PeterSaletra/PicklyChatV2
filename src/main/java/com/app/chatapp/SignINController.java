@@ -47,7 +47,6 @@ public class SignINController {
         if(!loginField.getText().isEmpty() && !passwordField.getText().isEmpty()) {
             login = loginField.getText();
             password = passwordField.getText();
-            System.out.println(loginField.getText());
 
             TransportController transportController = TransportController.getInstance();
             transportController.setLogin(login);

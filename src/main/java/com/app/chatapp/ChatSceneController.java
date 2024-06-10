@@ -65,20 +65,15 @@ public class ChatSceneController implements Initializable {
             }
         });
 
-        // loading in user avatar
-/*        FileInputStream inputstream = null;
-        try {
-            inputstream = new FileInputStream("./src/main/resources/com/app/chatapp/pictures/avatar.jpg");
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }*/
         TransportController transportController = TransportController.getInstance();
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3)));
-        timeline.play();
         Image image = transportController.getImage();
 
-        System.out.println("ok" + image);
+        //temporary solution
+        while(image == null){
+            image = transportController.getImage();
+            System.out.print("");
+        }
 
 
         ImagePattern imagePattern = new ImagePattern(image);
