@@ -5,6 +5,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -46,16 +48,18 @@ public class TransportController implements Runnable {
 
     public ObservableMap<String, ChatSceneController.ChatMessage> receivedMessages = FXCollections.observableHashMap();
 
-    private TransportController(){
+    public static Image userImage = null;
+
+    private TransportController() {
         generateRSA();
-        try{
+        try {
             this.encryptRSA = Cipher.getInstance("RSA");
             this.decryptRSA = Cipher.getInstance("RSA");
             this.encryptRSA.init(Cipher.ENCRYPT_MODE, publicKey);
             this.decryptRSA.init(Cipher.DECRYPT_MODE, privateKey);
             this.decryptAES = Cipher.getInstance("AES");
             this.encryptAES = Cipher.getInstance("AES");
-        }catch (Exception e){
+        } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }
@@ -79,11 +83,11 @@ public class TransportController implements Runnable {
         return isConnected;
     }
 
-    public String getLogin(){
+    public String getLogin() {
         return login;
     }
 
-    public static void sendToServer(String data){
+    public static void sendToServer(String data) {
         try {
             System.out.println(data);
             out.write(encryptMessage(data));
@@ -94,8 +98,8 @@ public class TransportController implements Runnable {
         }
     }
 
-    public static void sendToServer(File data){
-        try{
+    public static void sendToServer(File data) {
+        try {
             sendToServer(String.valueOf(data.length()));
 
             FileInputStream fis = new FileInputStream(data);
@@ -103,9 +107,9 @@ public class TransportController implements Runnable {
             byte[] imageData = new byte[4096];
             int bytesRead;
 
-            if(!in.readLine().equals("BEGIN TRANSFER")) return;
+            if (!decryptMessage(in.readLine()).equals("BEGIN TRANSFER")) return;
 
-            while ((bytesRead = fis.read(imageData)) != -1){
+            while ((bytesRead = fis.read(imageData)) != -1) {
                 socket.getOutputStream().write(imageData, 0, bytesRead);
             }
             fis.close();
@@ -113,6 +117,43 @@ public class TransportController implements Runnable {
         } catch (IOException e) {
             System.out.println("Lost connection to a server, couldn't send File.");
         }
+    }
+
+    public static void receiveFile(String fileLength) {
+        Image image = null;
+        try {
+            int size = Integer.parseInt(fileLength);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            int totalBytesRead = 0;
+
+            while (totalBytesRead < size) {
+                String encryptedPart = in.readLine();
+                if (encryptedPart == null) break;
+                System.out.println(totalBytesRead);
+                byte[] part = Base64.getDecoder().decode(encryptedPart);
+                byte[] decryptedPart = decryptAES.doFinal(part);
+                baos.write(decryptedPart);
+                totalBytesRead += decryptedPart.length;
+            }
+
+            byte[] imageData = baos.toByteArray();
+            ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
+            image = new Image(bais);
+            userImage = image;
+            System.out.println(userImage);
+
+ /*           Image finalImage = image;
+            Platform.runLater(() -> {
+                ImageView imageView = new ImageView(finalImage);
+                // You can now add the imageView to your UI
+            });*/
+        } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
+            System.err.println("Error occurred while receiving file: " + e.getMessage());
+        }
+        System.out.println(userImage);
+    }
+    public Image getImage(){
+        return userImage;
     }
 
     private static String receiveFromServer(){
@@ -275,7 +316,13 @@ public class TransportController implements Runnable {
             String message;
             while ((message = in.readLine()) != null) {
                 message = decryptMessage(message);
-                if(message.startsWith("USR")){
+                if (message.startsWith("FILE ")) {
+                    String[] parts = message.split(" ", 2);
+                    if (parts.length == 2) {
+                        receiveFile(parts[1]);
+                    }
+                }
+                else if(message.startsWith("USR")){
                     String[] newUser = message.split(" ");
                     Platform.runLater(() -> {
                         users.add(newUser[1]);

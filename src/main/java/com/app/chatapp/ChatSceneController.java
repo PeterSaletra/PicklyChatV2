@@ -1,5 +1,7 @@
 package com.app.chatapp;
 import com.app.chatapp.filter.ProfanityFilter;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.MapChangeListener;
 import javafx.event.EventHandler;
@@ -19,6 +21,8 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -62,19 +66,25 @@ public class ChatSceneController implements Initializable {
         });
 
         // loading in user avatar
-        FileInputStream inputstream = null;
+/*        FileInputStream inputstream = null;
         try {
             inputstream = new FileInputStream("./src/main/resources/com/app/chatapp/pictures/avatar.jpg");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
-        }
-        Image image = new Image(inputstream);
+        }*/
+        TransportController transportController = TransportController.getInstance();
+
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(3)));
+        timeline.play();
+        Image image = transportController.getImage();
+
+        System.out.println("ok" + image);
+
 
         ImagePattern imagePattern = new ImagePattern(image);
 
         userImageCircle.setFill(imagePattern);
 
-        TransportController transportController = TransportController.getInstance();
         usersListView.setItems(transportController.users);
 
         // filling in old user messages

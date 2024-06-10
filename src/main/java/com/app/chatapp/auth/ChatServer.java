@@ -203,6 +203,9 @@ public class ChatServer implements Runnable {
                         if (message.equals("QUIT")) {
                             shutdown();
                             return 0;
+                        } else if (message.startsWith("SEND_FILE")) {
+                            String[] parts = message.split(" ", 2);
+                            sendFile();
                         } else {
                             List<String> splitedMessage = new ArrayList<>(Arrays.asList(message.split(" ")));
                             String sender = splitedMessage.getFirst();
@@ -271,7 +274,7 @@ public class ChatServer implements Runnable {
             private String receiveUserPicture() {
                 try {
                     String fileName = nickname + ".jpg";
-                    int fileSize = Integer.parseInt(in.readLine());
+                    int fileSize = Integer.parseInt(decryptMessage(in.readLine()));
 
                     File file = new File(fileName);
 
@@ -295,6 +298,39 @@ public class ChatServer implements Runnable {
                 } catch (IOException e) {
                     logger.err("Error occurred while receiving file", e.getMessage());
                     return "";
+                }
+            }
+
+            private void sendFile() {
+                try {
+
+                    File file = new File(nickname + ".jpg");
+                    if (!file.exists()){
+                        file = new File("avatar.jpg");
+                    }
+
+
+                    sendMessage(String.valueOf(file.length()));
+                    if (!file.exists()) {
+                        sendMessage("Error: 404 File not found");
+                        return;
+                    }
+
+                    FileInputStream fis = new FileInputStream(file);
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+
+                    sendMessage("FILE " + file.length());
+
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        byte[] encryptedBuffer = encryptAES.doFinal(buffer, 0, bytesRead);
+                        out.println(Base64.getEncoder().encodeToString(encryptedBuffer));
+                    }
+
+                    fis.close();
+                    logger.echo("Sent file to user: " + nickname);
+                } catch (IOException | IllegalBlockSizeException | BadPaddingException e) {
+                    logger.err("Error occurred while sending file: ", e.getMessage());
                 }
             }
 

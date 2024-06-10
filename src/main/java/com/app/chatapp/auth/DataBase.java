@@ -36,7 +36,7 @@ public class DataBase {
 
 
     public boolean insertNewUser(String name, String password){
-        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?," +  getClass().getResource("com/app/chatapp/avatar.jpg") +" )")){
+        try(PreparedStatement stm = conn.prepareStatement("insert into users (userName, password, avatar_path) VALUES (?, ?, 'avatar.jpg' )")){
             stm.setString(1, name);
             stm.setString(2, password);
             stm.executeUpdate();

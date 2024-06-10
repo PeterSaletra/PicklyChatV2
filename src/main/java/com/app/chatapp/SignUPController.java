@@ -60,6 +60,8 @@ public class SignUPController {
                 transportController.setPassword(password);
                 if (profilePicture != null) isAvatarSet = true;
                 if (transportController.signUp(profilePicture, isAvatarSet)) {
+                    TransportController.sendToServer("SEND_FILE");
+
                     App.executorService.submit(transportController);
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("chatScene.fxml"));
                     Parent root = loader.load();

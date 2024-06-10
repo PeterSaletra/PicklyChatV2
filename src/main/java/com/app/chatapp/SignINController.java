@@ -56,6 +56,8 @@ public class SignINController {
             int bool = transportController.singIn();
 
             if(bool == 1) {
+                TransportController.sendToServer("SEND_FILE");
+
                 App.executorService.submit(transportController);
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("chatScene.fxml"));
                 Parent root = loader.load();
