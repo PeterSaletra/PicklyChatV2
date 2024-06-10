@@ -13,7 +13,7 @@
             <HBox prefHeight="80" styleClass="topBar">
                 <Label alignment="CENTER" prefHeight="80" prefWidth="729.0">PICKLY</Label>
                 <Region HBox.hgrow="ALWAYS" />
-                <ImageView fitHeight="30" fitWidth="30" onMouseClicked="#enterSettings" pickOnBounds="true" preserveRatio="true" styleClass="image">
+<!--                <ImageView fitHeight="30" fitWidth="30" onMouseClicked="#enterSettings" pickOnBounds="true" preserveRatio="true" styleClass="image">
                     <HBox.margin>
                         <Insets right="5.0" top="15.0" />
                     </HBox.margin>
@@ -24,7 +24,7 @@
                         <Insets right="5.0" top="15.0" />
                     </HBox.margin>
                     <Image url="@pictures/close_app.png" />
-                </ImageView>
+                </ImageView>-->
             </HBox>
         </top>
         <center>
