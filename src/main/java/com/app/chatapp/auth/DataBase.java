@@ -7,31 +7,28 @@ import java.sql.*;
 import java.util.Properties;
 
 public class DataBase {
-    private String url = "jdbc:sqlserver://sigmastic.database.windows.net:1433;database=picklychat;";
-    private String login;
-    private String password;
-    private final Connection conn;
+    private Connection conn;
     private final Logger logger;
 
     public DataBase() throws Exception {
         this.logger = new Logger("Database");
         loadENV();
-        conn = DriverManager.getConnection(url);
-        logger.echo("Successfully connected");
     }
 
-    private void loadENV(){
-        var props = new Properties();
-        var envFile = Paths.get(".env");
-        try (var inputStream = Files.newInputStream(envFile)) {
-            props.load(inputStream);
-        }catch (IOException e){
-            logger.err("Error occured while loading .env", e.getMessage());
-        }
-        this.login = props.get("LOGIN").toString();
-        this.password = props.get("PASSWORD").toString();
+    private void loadENV() {
+        String username = System.getenv().getOrDefault("DB_USER", "user");
+        String password = System.getenv().getOrDefault("DB_PASSWORD", "admin");
+        String url = System.getenv().getOrDefault(
+                "DB_LOCATION",
+                "jdbc:postgresql://localhost:54320/postgres"
+        );
 
-        url = url.concat("user=" + login + ";").concat("password=" + password + ";").concat("encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
+        try {
+            Class.forName("org.postgresql.Driver");
+            conn = DriverManager.getConnection(url, username, password);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

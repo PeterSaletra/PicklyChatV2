@@ -14,6 +14,7 @@ module com.app.chatapp {
    //requires javax.websocket.api;
     requires java.sql;
     requires json.simple;
+    requires org.postgresql.jdbc;
 
 
     opens com.app.chatapp to javafx.fxml;
