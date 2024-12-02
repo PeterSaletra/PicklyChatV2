@@ -20,7 +20,7 @@ public class DataBase {
         String password = System.getenv().getOrDefault("DB_PASSWORD", "admin");
         String url = System.getenv().getOrDefault(
                 "DB_LOCATION",
-                "jdbc:postgresql://localhost:54320/postgres"
+                "jdbc:postgresql://localhost:54320/chatapp"
         );
 
         try {
