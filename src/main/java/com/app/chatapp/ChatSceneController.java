@@ -3,7 +3,9 @@ import com.app.chatapp.filter.ProfanityFilter;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -16,12 +18,16 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,6 +38,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.HashMap;
 
+@Slf4j
 public class ChatSceneController implements Initializable {
     @FXML
     private StackPane screen;
@@ -52,12 +59,37 @@ public class ChatSceneController implements Initializable {
     @FXML
     private Label usernameLabel;
 
+    @FXML
+    private Button fileButton;
+
     private String chosenUser;
 
-    public HashMap<String, ArrayList<ChatSceneController.ChatMessage>> userMessagesMap = new HashMap<>();
+    public HashMap<String, ArrayList<ChatMessage>> userMessagesMap = new HashMap<>();
+
+
+    private ContextMenu statusesMenu;
+
+    private String currentStatus = "Online";
+
+
+    private TransportController transportController;
+
+
+    @FXML
+    public void displayFilePicker(MouseEvent event){
+        FileChooser fileChooser = new FileChooser();
+        Stage stage = (Stage) fileButton.getScene().getWindow();
+        fileChooser.showOpenDialog(stage);
+        TransportController.sendToServer(fileChooser.showOpenDialog(stage));
+    }
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        initializeStatusMenu();
+        updateUserStatusIndicator(currentStatus);
+
         //enter message sending
         screen.addEventFilter(KeyEvent.KEY_PRESSED, keyEvent -> {
             if(keyEvent.getCode() == KeyCode.ENTER) {
@@ -65,9 +97,10 @@ public class ChatSceneController implements Initializable {
             }
         });
 
-        TransportController transportController = TransportController.getInstance();
-
+        transportController = TransportController.getInstance();
         Image image = transportController.getImage();
+
+
 
         //temporary solution
         while(image == null){
@@ -81,6 +114,7 @@ public class ChatSceneController implements Initializable {
         userImageCircle.setFill(imagePattern);
 
         usersListView.setItems(transportController.users);
+        usersListView.setCellFactory(list -> new UserListCell());
 
         // filling in old user messages
         usersListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -109,13 +143,111 @@ public class ChatSceneController implements Initializable {
                 }
             }
         });
+
+        System.out.println("Adding status listener for user: " + usernameLabel.getText());
+
+        TransportController.userStatuses.addListener((MapChangeListener<String, String>) change -> {
+            System.out.println("Status change detected!");
+            System.out.println("Key: " + change.getKey());
+            System.out.println("Old value: " + change.getValueRemoved());
+            System.out.println("New value: " + change.getValueAdded());
+            System.out.println("Was added: " + change.wasAdded());
+            System.out.println("Was removed: " + change.wasRemoved());
+            System.out.println("Current thread: " + Thread.currentThread().getName());
+
+            Platform.runLater(() -> {
+                System.out.println("Updating UI for status change");
+                updateUserListViewStatus(change.getKey(), change.getValueAdded());
+            });
+        });
+
+
+
+    }
+
+    private void initializeStatusMenu() {
+        String[] statuses = new String[]{"Online", "Away", "Offline"};
+        Color[] colors = new Color[]{Color.GREEN, Color.YELLOW, Color.RED};
+        MenuItem[] menuItems = new MenuItem[3];
+
+        for (int i = 0; i < 3; i++) {
+            Circle circle = new Circle(4); // Set specific size for the circle
+            circle.setFill(colors[i]);
+
+            // Create HBox to hold circle and text
+            HBox content = new HBox(5); // 5 pixels spacing
+            content.setAlignment(Pos.CENTER_LEFT);
+            content.getChildren().addAll(circle, new Label(statuses[i]));
+
+            menuItems[i] = new MenuItem();
+            menuItems[i].setGraphic(content);
+            menuItems[i].setUserData(statuses[i]);
+
+            // Add status change handler
+            final int index = i;
+//            menuItems[i].setOnAction(event -> {
+//                String newStatus = statuses[index];
+//                // Send status change to server through TransportController
+//                TransportController.userStatuses.put(usernameLabel.getText(), newStatus);
+//
+//                // Update local UI
+//                updateUserStatusIndicator(statuses[index]);
+//            });
+
+            menuItems[i].setOnAction(event -> {
+                String newStatus = statuses[index];
+                StatusStore.saveStatus(usernameLabel.getText(), newStatus);
+                updateUserStatusIndicator(statuses[index]);
+
+                // Local update will happen through polling
+            });
+
+        }
+
+        statusesMenu = new ContextMenu(menuItems);
+
+        // Show menu on username label click
+        usernameLabel.setOnMouseClicked(event -> {
+            statusesMenu.show(usernameLabel, event.getScreenX(), event.getScreenY());
+        });
+    }
+
+
+
+    private void updateUserStatusIndicator(String status) {
+        Circle statusIndicator = new Circle(4);
+        statusIndicator.setFill(getStatusColor(status));
+
+        HBox container = new HBox(5);
+        container.setAlignment(Pos.CENTER_LEFT);
+        container.getChildren().add(statusIndicator);
+
+        usernameLabel.setGraphic(container);
+    }
+    
+    private Paint getStatusColor(String status) {
+        return switch(status) {
+            case "Online" -> Color.GREEN;
+            case "Away" -> Color.YELLOW;
+            case "Offline" -> Color.RED;
+            default -> throw new IllegalStateException("Unexpected value: " + status);
+        };
+    }
+
+    private void updateUserListViewStatus(String username, String status) {
+        System.out.println("I am " + usernameLabel.getText());
+        System.out.println("updating list view");
+        Platform.runLater(() -> {
+            // This will trigger the cell factory to update all visible cells
+            usersListView.refresh();
+        });
     }
 
     @FXML
     public void closeApplication(MouseEvent event) {
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.close();
-        javafx.application.Platform.exit();
+        Platform.exit();
         System.exit(1);
     }
 
@@ -246,6 +378,35 @@ public class ChatSceneController implements Initializable {
 
         public boolean isReceived() {
             return isReceived;
+        }
+    }
+
+
+    private class UserListCell extends ListCell<String> {
+        @Override
+        protected void updateItem(String username, boolean empty) {
+            super.updateItem(username, empty);
+
+            if (empty || username == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+
+            // Get status for the user
+            String status = TransportController.userStatuses.getOrDefault(username, "Online");
+
+            // Create the status indicator
+            Circle statusIndicator = new Circle(4);
+            statusIndicator.setFill(getStatusColor(status));
+
+            // Set up the container with status and username
+            HBox container = new HBox(5);
+            container.setAlignment(Pos.CENTER_LEFT);
+            container.getChildren().addAll(statusIndicator, new Label(username));
+
+            setText(null);
+            setGraphic(container);
         }
     }
 }

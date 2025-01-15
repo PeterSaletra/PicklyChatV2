@@ -6,7 +6,9 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -20,21 +22,24 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
+@Slf4j
 public class TransportController implements Runnable {
     private static TransportController instance;
 
+    @Setter
+    @Getter
     private String login;
+    @Setter
     private String password;
+    @Getter
     private Boolean isConnected = false;
 
     private static Socket socket = null;
     private static BufferedReader in = null;
     private static BufferedWriter out = null;
+
 
     private Cipher encryptRSA;
     private Cipher decryptRSA;
@@ -50,8 +55,11 @@ public class TransportController implements Runnable {
 
     public static Image userImage = null;
 
+    public static ObservableMap<String, String> userStatuses = FXCollections.observableHashMap();
+
     private TransportController() {
         generateRSA();
+        StatusStore.startPolling(userStatuses);
         try {
             this.encryptRSA = Cipher.getInstance("RSA");
             this.decryptRSA = Cipher.getInstance("RSA");
@@ -71,20 +79,12 @@ public class TransportController implements Runnable {
         return instance;
     }
 
-    public void setLogin(String login) {
-        this.login = login;
-    }
+    public static void changeStatus(String status) {
+        // Format: STATUS username newStatus
+        System.out.println("sending status change to the server: " + "STATUS " + getInstance().login + " " + status);
+//        sendToServer("STATUS " + getInstance().login + " " + status);
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
-    public Boolean getIsConnected() {
-        return isConnected;
-    }
-
-    public String getLogin() {
-        return login;
     }
 
     public static void sendToServer(String data) {
@@ -264,7 +264,7 @@ public class TransportController implements Runnable {
     }
 
 
-    public int singIn() throws Exception {
+    public int signIn() throws Exception {
         if (login == null || password == null) {
             return -1;
         }
@@ -331,6 +331,10 @@ public class TransportController implements Runnable {
                             });
                         }
                     }
+                } else if (message.startsWith("STATUS")) {
+                    String[] parts = message.split(" ", 3);
+                    userStatuses.put(parts[1], parts[2]);
+                    System.out.println("Transport controller received Status change: " + parts[1] + " " + parts[2]);
                 } else {
                     List<String> splitedMessage = new ArrayList(Arrays.asList(message.split(" ")));
                     String sender = splitedMessage.getFirst();

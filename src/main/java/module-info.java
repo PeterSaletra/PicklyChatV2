@@ -12,9 +12,11 @@ module com.app.chatapp {
     requires com.azure.identity.extensions;
     requires com.microsoft.sqlserver.jdbc;
    //requires javax.websocket.api;
-    requires java.sql;
     requires json.simple;
     requires org.postgresql.jdbc;
+    requires static lombok;
+    requires com.fasterxml.jackson.databind;
+    requires java.sql;
 
 
     opens com.app.chatapp to javafx.fxml;

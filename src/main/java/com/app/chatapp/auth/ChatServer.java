@@ -1,5 +1,8 @@
 package com.app.chatapp.auth;
 
+import com.app.chatapp.db.DatabaseConfig;
+import com.app.chatapp.db.DatabaseSetup;
+
 import javax.crypto.*;
 import java.io.*;
 import java.net.ServerSocket;
@@ -10,6 +13,9 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -36,7 +42,12 @@ public class ChatServer implements Runnable {
         this.activeUsersName = new ArrayList<>();
         this.done = false;
         this.port = port;
-        this.dataBase = new DataBase();
+
+        DatabaseConfig databaseConfig = DatabaseConfig.createDefault();
+        Connection connection = DriverManager.getConnection(databaseConfig.getJdbcUrl());
+        DatabaseSetup databaseSetup = new DatabaseSetup(connection);
+        databaseSetup.createTables();
+        this.dataBase = new DataBase(connection);
         this.logger = new Logger("Server");
     }
 
@@ -206,7 +217,15 @@ public class ChatServer implements Runnable {
                         } else if (message.startsWith("SEND_FILE")) {
                             String[] parts = message.split(" ", 2);
                             sendFile();
-                        } else {
+                        } else if (message.startsWith("STATUS")) {
+                            String[] parts = message.split(" ");
+
+                            sendBroadcast(parts[0], parts[1], parts[2]);
+
+                            System.out.println("server received status change: " + parts[0] + " " + parts[1]);
+                        }
+
+                        else {
                             List<String> splitedMessage = new ArrayList<>(Arrays.asList(message.split(" ")));
                             String sender = splitedMessage.getFirst();
                             splitedMessage.removeFirst();
@@ -394,6 +413,8 @@ public class ChatServer implements Runnable {
                     if (!client.isClosed()) {
                         client.close();
                     }
+
+                    new File("user_statuses.json").delete();
 
                 } catch (IOException e) {
                     logger.err("Error occurred while closing handler", e.getMessage());
